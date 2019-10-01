@@ -1,14 +1,17 @@
 from django.shortcuts import render
 from rest_framework import generics
+from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
 from user.models import User
 from library.models import BookItem, Book
-from user.serializers import UserSerializer
+from user.serializers import UserSerializer, DjangoUserSerializer
 from library.serializers import BookItemSerializerList, BookItemSerializerDetail
 from user.forms import BookForm
+from rest_framework.permissions import IsAuthenticated
 
 
+@permission_classes([IsAuthenticated])
 class UserDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -20,6 +23,7 @@ class UserDetailView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
+@permission_classes([IsAuthenticated])
 class UserBookListView(generics.ListCreateAPIView):
     serializer_class = BookItemSerializerList
     queryset = BookItem.objects.all()
@@ -48,6 +52,7 @@ class UserBookListView(generics.ListCreateAPIView):
             return JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
 
 
+@permission_classes([IsAuthenticated])
 class BookDetailView(generics.RetrieveAPIView):
     serializer_class = BookItemSerializerDetail
     queryset = BookItem.objects.all()
@@ -57,6 +62,3 @@ class BookDetailView(generics.RetrieveAPIView):
         book = BookItem.objects.get(id=book_id)
         serializer = self.get_serializer(book)
         return Response(serializer.data)
-
-
-
