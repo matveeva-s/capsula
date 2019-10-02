@@ -24,9 +24,29 @@ SECRET_KEY = 'foea6@vte8nlzn-5*)l%qoc2q0o$d1jrdfw+dc%*ysk80@^g*v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost'
+]
+
+CORS_ORIGIN_WHITELIST = [
+    "http://127.0.0.1:3000"
+]
+
+CORS_ORIGIN_ALLOW_ALL = False
 
 # Application definition
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,16 +59,18 @@ INSTALLED_APPS = [
     'user.apps.UserConfig',
     'library.apps.LibraryConfig',
     'rest_framework',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 ROOT_URLCONF = 'capsula.urls'

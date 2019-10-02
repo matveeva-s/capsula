@@ -1,16 +1,16 @@
-from django.shortcuts import render
+from rest_framework.authtoken.models import Token
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
 from user.models import User
-from library.models import BookItem, Book
-from user.serializers import UserSerializer, DjangoUserSerializer
-from library.serializers import BookItemSerializerList, BookItemSerializerDetail
+from library.models import BookItem, Book, Swap
+from user.serializers import UserSerializer
+from library.serializers import BookItemSerializerList, BookItemSerializerDetail, SwapSerializerDetail
 from user.forms import BookForm
 from rest_framework.permissions import IsAuthenticated
 
-
+#todo шифровать пароль при регистрации и входе
 @permission_classes([IsAuthenticated])
 class UserDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
@@ -62,3 +62,29 @@ class BookDetailView(generics.RetrieveAPIView):
         book = BookItem.objects.get(id=book_id)
         serializer = self.get_serializer(book)
         return Response(serializer.data)
+
+
+@permission_classes([IsAuthenticated])
+class MeDetailView(generics.RetrieveAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        token = request.headers['Authorization'][6:]
+        django_user = Token.objects.get(key=token).user
+        user = User.objects.get(django_user=django_user)
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+
+@permission_classes([IsAuthenticated])
+class UserSwapListView(generics.ListCreateAPIView):
+    serializer_class = SwapSerializerDetail
+    queryset = Swap.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=self.kwargs['pk'])
+        swaps = self.queryset.filter(reader=user)
+        serializer = self.get_serializer(swaps, many=True)
+        return Response(serializer.data)
+

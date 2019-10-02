@@ -1,6 +1,7 @@
 from django.db import models
 from user.models import User
 
+
 class Book(models.Model):
     CLASSIC_RUSSIAN = 0
     CLASSIC_FOREIGN = 1
@@ -109,7 +110,8 @@ class Swap (models.Model):
         (READING, 'Книга читается'),
         (RETURNED, 'Книга возвращена'),
     )
-    owner = models.ForeignKey(User, related_name='book_items', verbose_name='Владелец', on_delete=models.SET_NULL),
+    #По идее хозяина книги(кому направлять запрос) можно вытянуть из книги и получается дублирование данных в БД
+   # owner = models.ForeignKey(User, related_name='book_items', verbose_name='Владелец', on_delete=models.SET_NULL),
     reader = models.ForeignKey(User, related_name='book_items', verbose_name='Читатель', on_delete=models.SET_NULL),
     book = models.ForeignKey(BookItem, verbose_name='Книга в обмене', on_delete=models.SET_NULL),
     status = models.IntegerField(verbose_name='Статус обмена', choices=SWAP_STATUSES),

@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User as DjangoUser
+from django.contrib.sessions.models import Session
 from django.http import JsonResponse
 from rest_framework import generics
 from rest_framework.authtoken.models import Token
@@ -27,6 +28,7 @@ class LogoutView(generics.RetrieveAPIView):
         token = request.headers['Authorization'][6:]
         user = Token.objects.get(key=token).user
         Token.objects.get(key=token).delete()
+        Session.objects.all().delete() #todo ОЧЕНЬ плохоре решение, нужно удалять только текущую сессию
         return JsonResponse({})
 
 
