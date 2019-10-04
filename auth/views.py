@@ -6,18 +6,27 @@ from rest_framework import generics
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.utils import json
 
 from auth.forms import UserAuthForm, DjangoUserAuthForm
 
 
 class LoginView(generics.RetrieveAPIView):
-
+#todo exceptions
     def post(self, request, *args, **kwargs):
-        username = request.data['username']
-        password = request.data['password']
+        if request.content_type == 'text/plain;charset=UTF-8':
+            data = json.loads(request.body.decode('utf-8'))
+            username = data['username']
+            password = data['password']
+        else:
+            username = request.data['username']
+            password = request.data['password']
         auth_user = authenticate(username=username, password=password)
         token = Token.objects.get_or_create(user=auth_user)
-        return JsonResponse({'token': token[0].key})
+        resp = JsonResponse({'token': token[0].key})
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
+
 
 
 @permission_classes([IsAuthenticated])
