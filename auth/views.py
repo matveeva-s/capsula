@@ -12,7 +12,9 @@ from auth.forms import UserAuthForm, DjangoUserAuthForm
 
 
 class LoginView(generics.RetrieveAPIView):
-#todo exceptions
+#todo exceptions + сессии
+    queryset = DjangoUser.objects.all()
+
     def post(self, request, *args, **kwargs):
         if request.content_type == 'text/plain;charset=UTF-8':
             data = json.loads(request.body.decode('utf-8'))
@@ -21,7 +23,12 @@ class LoginView(generics.RetrieveAPIView):
         else:
             username = request.data['username']
             password = request.data['password']
-        auth_user = authenticate(username=username, password=password)
+        #auth_user = authenticate(username=username, password=password)
+        auth_user = DjangoUser.objects.get(username=username)
+        if auth_user and auth_user.check_password(password):
+            request.session['member_id'] = auth_user.username
+        else:
+            JsonResponse({'msg': 'Ошибка входа'}, status=401)
         token = Token.objects.get_or_create(user=auth_user)
         resp = JsonResponse({'token': token[0].key})
         resp['Access-Control-Allow-Origin'] = '*'
@@ -37,7 +44,11 @@ class LogoutView(generics.RetrieveAPIView):
         token = request.headers['Authorization'][6:]
         user = Token.objects.get(key=token).user
         Token.objects.get(key=token).delete()
-        Session.objects.all().delete() #todo ОЧЕНЬ плохоре решение, нужно удалять только текущую сессию
+        try:
+            del request.session['member_id']
+        except KeyError:
+            pass
+       # Session.objects.all().delete() #todo ОЧЕНЬ плохое решение, нужно удалять только текущую сессию
         return JsonResponse({})
 
 

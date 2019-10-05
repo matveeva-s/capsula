@@ -3,30 +3,15 @@ import { Box } from 'grommet';
 
 import MenuButton from './../Button/MenuButton';
 import Banner from './../Banner/Banner';
+import * as axios from "axios";
 
 
-export default class HomePage extends Component {
+class HomePage extends Component {
  //test axios todo delete
-    async handleSubmit(){
-        console.log('press');
-       /* axios({
-            method: 'POST',
 
-            url: 'http://localhost:8000/auth/login/', //'http://localhost:8000/user/me/',
-        //    headers: {'Authorization': 'Token 63ca849a4d2d22c9af3b4a2e2c921bc2a1581e24'}
-            headers:{'Content-Type': 'application/json',
-                'Accept': 'application/json'},
-            body: {
-                data: {
-                    username: "Svetik",
-                    password: "Capsula1337"
-                }
-            }
-        })
-            .then(function (response) {
-                console.log(response)
-            });
-    };*/
+    state = {auth_token: ""};
+
+    async handleSubmitLogin() {
         let response  = await fetch('http://localhost:8000/auth/login/', {
             method: 'POST',
             body: JSON.stringify({
@@ -34,17 +19,47 @@ export default class HomePage extends Component {
                 password: "Capsula1337"
             })
         });
-        console.log(response.json());}
 
+        const myJson = await response.json();
+            console.log(myJson.token);
+        return myJson.token;
+    };
 
+    async handleSubmitLogout(t) {
+        const myJson = t.then(function(res){
+        axios({
+            method: 'GET',
+            url: '/auth/logout/',
+            headers: {'Authorization': 'Token ' + res}
+        })
+            .then(function (response) {
+                console.log(response)
+            });
+    })};
+
+    async handleSubmitMe(t){
+        const myJson = t.then(function(res){
+            axios({
+                method: 'GET',
+                url: '/user/me/',
+                headers: {'Authorization': 'Token ' + res}
+            })
+                .then(function (response) {
+                    console.log(response)
+                });
+        })};
 
     render(){
         return (
             <Box>
                 <Banner/>
                     <MenuButton label='button'/>
-                    <button  onClick={this.handleSubmit}>Add user</button>
+                    <button  onClick={() => this.setState({auth_token: this.handleSubmitLogin()})}>Login</button>
+                    <button  onClick={() => this.handleSubmitLogout(this.state.auth_token)}>Logout</button>
+                    <button  onClick={() => this.handleSubmitMe(this.state.auth_token)}>Me</button>
             </Box>
         );
     }
 }
+
+export default HomePage;
