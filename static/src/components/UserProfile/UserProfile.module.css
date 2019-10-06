@@ -1,0 +1,36 @@
+.small_avatar {
+    height: 40px;
+    border-radius: 100%;
+    width: 40px;
+    margin: 5px;
+}
+
+.big_avatar {
+    height: 200px;
+    border-radius: 100%;
+    width: 200px;
+    margin: 50px;
+}
+
+.background {
+    height: 220px;
+    width: 100%;
+    padding: 0px 50px;
+    margin: 0px 0px 40px 0px;
+}
+
+.profile {
+    position: relative;
+}
+
+.header1 {
+    color: black;
+    font-size: 26px;
+    margin: 10px;
+}
+
+.header2 {
+    color: grey;
+    font-size: 16px;
+    margin: 0px;
+}

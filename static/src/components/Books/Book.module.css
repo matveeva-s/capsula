@@ -1,0 +1,40 @@
+.book {
+    background-size: cover;
+    min-height: 250px;
+    width: 160px;
+    position: relative;
+}
+
+.book_cover {
+    background-size: cover;
+    height: 250px;
+    width: 160px;
+    object-fit: cover;
+}
+
+.book_title {
+    position: absolute;
+    top: 5px;
+    margin: 5px;
+}
+
+.header {
+    margin: 10px;
+    color: black;
+    font-size: 26px;
+}
+
+.scroll_container {
+    margin: 30px 0px 0px 0px;
+}
+
+.text {
+    color: grey;
+    font-size: 16px;
+    margin: 5px;
+}
+
+.arrow:hover {
+    background-color: grey;
+    border-radius: 100%;
+}
