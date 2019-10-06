@@ -21,8 +21,24 @@ class HomePage extends Component {
         });
 
         const myJson = await response.json();
-            console.log(myJson.token);
+            console.log(myJson);
         return myJson.token;
+    };
+
+    async handleSubmitRegistration() {
+        let response  = await fetch('http://localhost:8000/auth/registration/', {
+            method: 'POST',
+            body: JSON.stringify({
+                username: "Kate1",
+                password: "Capsula1337",
+                email: "ivanova.k@milandr.ru",
+                first_name: "Ekaterina",
+                last_name: "Ivanova"
+            })
+        });
+
+        const myJson = await response.json();
+        return 'ok';
     };
 
     async handleSubmitLogout(t) {
@@ -57,6 +73,7 @@ class HomePage extends Component {
                     <button  onClick={() => this.setState({auth_token: this.handleSubmitLogin()})}>Login</button>
                     <button  onClick={() => this.handleSubmitLogout(this.state.auth_token)}>Logout</button>
                     <button  onClick={() => this.handleSubmitMe(this.state.auth_token)}>Me</button>
+                    <button  onClick={() => this.handleSubmitRegistration()}>Registration</button>
             </Box>
         );
     }
