@@ -25,7 +25,8 @@ SECRET_KEY = 'foea6@vte8nlzn-5*)l%qoc2q0o$d1jrdfw+dc%*ysk80@^g*v'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'localhost'
+    'localhost',
+    '127.0.0.1'
 ]
 
 CORS_ORIGIN_WHITELIST = [
@@ -143,7 +144,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 

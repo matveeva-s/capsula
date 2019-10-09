@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from user.models import User
 
 
@@ -79,7 +80,7 @@ class BookItem (models.Model):
         (READING, 'Читается другим пользователем'),
     )
 
-    book = models.ForeignKey(Book, related_name='items', verbose_name='Книга', on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, related_name='item', verbose_name='Книга', on_delete=models.CASCADE)
     owner = models.ForeignKey(
         User, related_name='book_items', verbose_name='Владелец',
         blank=True, null=True, on_delete=models.SET_NULL
@@ -110,17 +111,17 @@ class Swap (models.Model):
         (READING, 'Книга читается'),
         (RETURNED, 'Книга возвращена'),
     )
-    #По идее хозяина книги(кому направлять запрос) можно вытянуть из книги и получается дублирование данных в БД
-   # owner = models.ForeignKey(User, related_name='book_items', verbose_name='Владелец', on_delete=models.SET_NULL),
-    reader = models.ForeignKey(User, related_name='book_items', verbose_name='Читатель', on_delete=models.SET_NULL),
-    book = models.ForeignKey(BookItem, verbose_name='Книга в обмене', on_delete=models.SET_NULL),
-    status = models.IntegerField(verbose_name='Статус обмена', choices=SWAP_STATUSES),
-    created_at = models.DateTimeField(verbose_name='Дата создания'),
-    updated_at = models.DateTimeField(verbose_name='Дата изменения'),
+
+    reader = models.ForeignKey(User, related_name='reader', verbose_name='Читатель', on_delete=models.CASCADE)
+    book = models.ForeignKey(BookItem, verbose_name='Книга в обмене', on_delete=models.CASCADE)
+    status = models.IntegerField(verbose_name='Статус обмена', choices=SWAP_STATUSES)
+    created_at = models.DateTimeField(verbose_name='Дата создания', default=timezone.localtime())
+    updated_at = models.DateTimeField(verbose_name='Дата изменения', default=timezone.localtime())
 
     class Meta:
         verbose_name = 'Обмен/заявка'
         verbose_name_plural = 'Обмены и заявки'
+        ordering = ('pk',)
 
     def __str__(self):
-        return self.book
+        return self.reader.first_name

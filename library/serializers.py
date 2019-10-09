@@ -31,7 +31,7 @@ class BookItemSerializerDetail(serializers.ModelSerializer):
         fields = ('book', 'status')
 
 
-class BookSwapSerializer(serializers.ModelSerializer):
+class SwapSerializer(serializers.ModelSerializer):
     book = BookSerializerDetail()
     owner = DjangoUserSerializer()
 
@@ -42,7 +42,7 @@ class BookSwapSerializer(serializers.ModelSerializer):
 
 class SwapSerializerDetail(serializers.ModelSerializer):
     reader = DjangoUserSerializer()
-    book = BookSwapSerializer()
+    book = SwapSerializer()
 
     class Meta:
         model = Swap
