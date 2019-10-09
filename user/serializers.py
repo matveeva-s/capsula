@@ -14,4 +14,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('last_name', 'first_name', 'email', 'django_user')
+        fields = ('last_name', 'first_name', 'email', 'id', 'django_user')
+
+
+class UserSwapSerializer(serializers.ModelSerializer):
+    django_user = DjangoUserSerializer()
+
+    class Meta:
+        model = User
+        fields = ('last_name', 'first_name', 'django_user')
