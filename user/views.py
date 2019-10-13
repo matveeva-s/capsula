@@ -1,35 +1,19 @@
-<<<<<<< HEAD
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-
-=======
 from django.core.serializers import json
 from django.http import JsonResponse
->>>>>>> books_and_swaps
 from rest_framework.authtoken.models import Token
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
-<<<<<<< HEAD
 from rest_framework.utils import json
 from rest_framework.permissions import IsAuthenticated
-=======
->>>>>>> books_and_swaps
-
 from user.forms import UserForm
 from user.models import User
-<<<<<<< HEAD
-from user.forms import BookForm
 from user.serializers import UserSerializer
-from library.models import BookItem, Book, Swap
-from library.serializers import BookItemSerializerList, BookItemSerializerDetail, SwapSerializerDetail, \
-    SwapSerializerList
 from capsula.utils import upload_file
-
-=======
 from user.serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated
->>>>>>> books_and_swaps
 
 #todo шифровать пароль при регистрации и входе
 @permission_classes([IsAuthenticated])
@@ -92,26 +76,7 @@ class UserListView(generics.RetrieveAPIView):
         serializer = self.get_serializer(users, many=True)
         resp = Response(serializer.data)
         resp['Access-Control-Allow-Origin'] = '*'
-<<<<<<< HEAD
         return resp
-
-
-@permission_classes([IsAuthenticated])
-class UserSwapListView(generics.ListCreateAPIView):
-    serializer_class = SwapSerializerList
-    queryset = Swap.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=self.kwargs['pk'])
-        swaps = self.queryset.filter(reader=user)
-        serializer = self.get_serializer(swaps, many=True)
-        return Response(serializer.data)
-
-
-@permission_classes([IsAuthenticated])
-class UserSwapDetailView(generics.ListCreateAPIView):
-    pass
-
 
 # from django.views.decorators.csrf import csrf_exempt
 # @csrf_exempt
@@ -125,9 +90,3 @@ def change_avatar(request, pk):
 
     return JsonResponse({})
 
-
-
-
-=======
-        return resp
->>>>>>> books_and_swaps
