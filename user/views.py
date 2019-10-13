@@ -1,14 +1,19 @@
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+
 from rest_framework.authtoken.models import Token
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
-from django.http import JsonResponse
-from user.models import User
-from library.models import BookItem, Book, Swap
-from user.serializers import UserSerializer
-from library.serializers import BookItemSerializerList, BookItemSerializerDetail, SwapSerializerDetail
-from user.forms import BookForm
 from rest_framework.permissions import IsAuthenticated
+
+from user.models import User
+from user.forms import BookForm
+from user.serializers import UserSerializer
+from library.models import BookItem, Book, Swap
+from library.serializers import BookItemSerializerList, BookItemSerializerDetail, SwapSerializerDetail
+from capsula.utils import upload_file
+
 
 #todo шифровать пароль при регистрации и входе
 @permission_classes([IsAuthenticated])
@@ -87,4 +92,19 @@ class UserSwapListView(generics.ListCreateAPIView):
         swaps = self.queryset.filter(reader=user)
         serializer = self.get_serializer(swaps, many=True)
         return Response(serializer.data)
+
+
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+def change_avatar(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        user_avatar = request.FILES['image']
+        upload_path = 'avatar/{}'.format(pk)
+        upload_file(upload_path, user_avatar)
+
+    return JsonResponse({})
+
 

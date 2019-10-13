@@ -1,7 +1,9 @@
+capsula/settings.py
 avatar/
 node_modules/
 .DS_Store
 .env
+*.pyc
 .idea/
 venv/
 __pycache__/

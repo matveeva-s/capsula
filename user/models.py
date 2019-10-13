@@ -1,11 +1,21 @@
 from django.contrib.auth.models import User as DjangoUser
+from django.core.files.storage import FileSystemStorage
 from django.db import models
+
+from capsula import settings
+
+
+class OverwriteStorage(FileSystemStorage):
+    """This class controls that new file upload with same name will overwrite old file"""
+    def get_available_name(self, name, max_length=None):
+        self.delete(name)
+        return name
 
 
 def photo_upload_path(instance, *args, **kwargs):
     """Generates upload path for ImageField/FileField"""
-    name = '%s.jpg' % (str(instance.id),)
-    location = 'avatar/%s' % (name,)
+    name = '%s.jpg' % str(instance.id)
+    location = 'avatar/%s' % name
     return location
 
 
@@ -19,7 +29,9 @@ class User(models.Model):
     last_name = models.CharField('Фамилия', max_length=30, blank=True)
     email = models.EmailField('Email', max_length=150, unique=True)
     avatar = models.ImageField(
-        verbose_name='Аватар', upload_to=photo_upload_path, default='', blank=True, null=True
+        storage=settings.DEFAULT_FILE_STORAGE, verbose_name='Аватар', upload_to=photo_upload_path,
+        default='', blank=True,
+        null=True
     )
 
     class Meta:
