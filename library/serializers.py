@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from library.models import Book, BookItem, Swap
-from user.serializers import DjangoUserSerializer, UserSwapSerializer, UserSerializer
+from user.serializers import DjangoUserSerializer, UserShortSerializer, UserSerializer
 
 
 class BookSerializerList(serializers.ModelSerializer):
@@ -9,12 +9,13 @@ class BookSerializerList(serializers.ModelSerializer):
         fields = ('title', 'authors')
 
 
-class BookItemSerializerList(serializers.ModelSerializer):
+class BookItemSerializerDetail(serializers.ModelSerializer):
     book = BookSerializerList()
+    owner = UserShortSerializer()
 
     class Meta:
         model = BookItem
-        fields = ('book', 'status')
+        fields = ('book', 'status', 'owner')
 
 
 class BookSerializerDetail(serializers.ModelSerializer):
@@ -23,12 +24,12 @@ class BookSerializerDetail(serializers.ModelSerializer):
         fields = ('title', 'authors', 'genre', 'description')
 
 
-class BookItemSerializerDetail(serializers.ModelSerializer):
-    book = BookSerializerDetail()
+class BookItemSerializerList(serializers.ModelSerializer):
+    owner = UserShortSerializer()
 
     class Meta:
         model = BookItem
-        fields = ('book', 'status')
+        fields = ('status', 'owner')
 
 
 class SwapSerializerList(serializers.ModelSerializer):

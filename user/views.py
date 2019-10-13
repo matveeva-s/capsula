@@ -2,15 +2,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
-from django.http import JsonResponse
-from rest_framework.utils import json
 
 from user.models import User
-from library.models import BookItem, Book, Swap
+from library.models import BookItem, Swap
 from user.serializers import UserSerializer
-from library.serializers import BookItemSerializerList, BookItemSerializerDetail, SwapSerializerDetail, \
-    SwapSerializerList
-from user.forms import BookForm
+from library.serializers import BookItemSerializerList, BookItemSerializerDetail, SwapSerializerList
 from rest_framework.permissions import IsAuthenticated
 
 #todo шифровать пароль при регистрации и входе
@@ -40,31 +36,6 @@ class UserBookListView(generics.ListCreateAPIView):
         resp = Response(serializer.data)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
-
-    def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=self.kwargs['pk'])
-        if request.content_type == 'text/plain;charset=UTF-8':
-            data = json.loads(request.body.decode('utf-8'))
-        else:
-            data = request.data
-        form = BookForm(data)
-        if form.is_valid():
-            title = form.data['title']
-            authors = form.data['authors']
-            existing_books = Book.objects.filter(title__contains=title, authors__contains=authors)
-            if existing_books:
-                book = existing_books[0]
-            else:
-                book = form.save()
-            book_item = BookItem.objects.create(book=book, owner=user)
-            book_item.save()
-            resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
-        else:
-            resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
 
 
 @permission_classes([IsAuthenticated])
