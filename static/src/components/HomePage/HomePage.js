@@ -15,7 +15,7 @@ class HomePage extends Component {
         let response  = await fetch('http://localhost:8000/auth/login/', {
             method: 'POST',
             body: JSON.stringify({
-                username: "Svetik",
+                username: "Sveta",
                 password: "Capsula1337"
             })
         });
@@ -57,7 +57,7 @@ class HomePage extends Component {
         const myJson = t.then(function(res){
             axios({
                 method: 'GET',
-                url: '/user/me/',
+                url: '/library/swaps/',
                 headers: {'Authorization': 'Token ' + res}
             })
                 .then(function (response) {

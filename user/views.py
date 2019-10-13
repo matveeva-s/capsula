@@ -5,13 +5,15 @@ from rest_framework.authtoken.models import Token
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
+from rest_framework.utils import json
 from rest_framework.permissions import IsAuthenticated
 
 from user.models import User
 from user.forms import BookForm
 from user.serializers import UserSerializer
 from library.models import BookItem, Book, Swap
-from library.serializers import BookItemSerializerList, BookItemSerializerDetail, SwapSerializerDetail
+from library.serializers import BookItemSerializerList, BookItemSerializerDetail, SwapSerializerDetail, \
+    SwapSerializerList
 from capsula.utils import upload_file
 
 
@@ -25,7 +27,9 @@ class UserDetailView(generics.RetrieveAPIView):
         user_id = self.kwargs['pk']
         user = User.objects.get(id=user_id)
         serializer = self.get_serializer(user)
-        return Response(serializer.data)
+        resp = Response(serializer.data)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 
 @permission_classes([IsAuthenticated])
@@ -37,11 +41,17 @@ class UserBookListView(generics.ListCreateAPIView):
         user = User.objects.get(id=self.kwargs['pk'])
         books = self.queryset.filter(owner=user)
         serializer = self.get_serializer(books, many=True)
-        return Response(serializer.data)
+        resp = Response(serializer.data)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
     def post(self, request, *args, **kwargs):
         user = User.objects.get(id=self.kwargs['pk'])
-        form = BookForm(request.POST)
+        if request.content_type == 'text/plain;charset=UTF-8':
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.data
+        form = BookForm(data)
         if form.is_valid():
             title = form.data['title']
             authors = form.data['authors']
@@ -52,9 +62,13 @@ class UserBookListView(generics.ListCreateAPIView):
                 book = form.save()
             book_item = BookItem.objects.create(book=book, owner=user)
             book_item.save()
-            return JsonResponse({})
+            resp = JsonResponse({})
+            resp['Access-Control-Allow-Origin'] = '*'
+            return resp
         else:
-            return JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
+            resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
+            resp['Access-Control-Allow-Origin'] = '*'
+            return resp
 
 
 @permission_classes([IsAuthenticated])
@@ -66,7 +80,9 @@ class BookDetailView(generics.RetrieveAPIView):
         book_id = self.kwargs['id']
         book = BookItem.objects.get(id=book_id)
         serializer = self.get_serializer(book)
-        return Response(serializer.data)
+        resp =  Response(serializer.data)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 
 @permission_classes([IsAuthenticated])
@@ -79,12 +95,14 @@ class MeDetailView(generics.RetrieveAPIView):
         django_user = Token.objects.get(key=token).user
         user = User.objects.get(django_user=django_user)
         serializer = self.get_serializer(user)
-        return Response(serializer.data)
+        resp = Response(serializer.data)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 
 @permission_classes([IsAuthenticated])
 class UserSwapListView(generics.ListCreateAPIView):
-    serializer_class = SwapSerializerDetail
+    serializer_class = SwapSerializerList
     queryset = Swap.objects.all()
 
     def get(self, request, *args, **kwargs):
@@ -94,10 +112,14 @@ class UserSwapListView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
 
-from django.views.decorators.csrf import csrf_exempt
+@permission_classes([IsAuthenticated])
+class UserSwapDetailView(generics.ListCreateAPIView):
+    pass
 
 
-@csrf_exempt
+# from django.views.decorators.csrf import csrf_exempt
+# @csrf_exempt
+@permission_classes([IsAuthenticated])
 def change_avatar(request, pk):
     user = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
@@ -106,5 +128,7 @@ def change_avatar(request, pk):
         upload_file(upload_path, user_avatar)
 
     return JsonResponse({})
+
+
 
 
