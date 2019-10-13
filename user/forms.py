@@ -1,9 +1,8 @@
 from django import forms
-from library.models import Book
+from user.models import User
 
 
-class BookForm(forms.ModelForm):
-
+class UserForm(forms.ModelForm):
     class Meta:
-        model = Book
-        fields = ('title', 'authors', 'genre')
+        model = User
+        fields = ('first_name', 'last_name')

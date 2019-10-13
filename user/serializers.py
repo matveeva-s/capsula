@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('last_name', 'first_name', 'email', 'id', 'django_user')
 
 
-class UserSwapSerializer(serializers.ModelSerializer):
+class UserShortSerializer(serializers.ModelSerializer):
     django_user = DjangoUserSerializer()
 
     class Meta:
