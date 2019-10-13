@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.utils import json
 from rest_framework.authtoken.models import Token
+
 from library.models import Book, BookItem
 from library.serializers import BookSerializerList, BookItemSerializerDetail, BookSerializerDetail, \
     BookItemSerializerList
@@ -74,7 +75,12 @@ class BookItemsDetailView(generics.RetrieveAPIView):
         user = User.objects.get(django_user=django_user)
         form = BookItemForm(data)
         book_id = self.kwargs['id']
-        book = BookItem.objects.get(id=book_id)
+        try:
+            book = BookItem.objects.get(id=book_id)
+        except Exception:
+            resp = JsonResponse({'msg': 'Книга не найдена'}, status=404)
+            resp['Access-Control-Allow-Origin'] = '*'
+            return resp
         if book.owner != user:
             resp = JsonResponse({'msg': 'Пользователь может редактировать только свои книги'}, status=403)
             resp['Access-Control-Allow-Origin'] = '*'
@@ -98,7 +104,12 @@ class BookItemsDetailView(generics.RetrieveAPIView):
         django_user = Token.objects.get(key=token).user
         user = User.objects.get(django_user=django_user)
         book_id = self.kwargs['id']
-        book = BookItem.objects.get(id=book_id)
+        try:
+            book = BookItem.objects.get(id=book_id)
+        except Exception:
+            resp = JsonResponse({'msg': 'Книга не найдена'}, status=404)
+            resp['Access-Control-Allow-Origin'] = '*'
+            return resp
         if book.owner != user:
             resp = JsonResponse({'msg': 'Пользователь может удалять только свои книги'}, status=403)
             resp['Access-Control-Allow-Origin'] = '*'

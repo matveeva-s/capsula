@@ -6,7 +6,7 @@ from user.serializers import DjangoUserSerializer, UserShortSerializer, UserSeri
 class BookSerializerList(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = ('title', 'authors')
+        fields = ('title', 'authors', 'id')
 
 
 class BookItemSerializerDetail(serializers.ModelSerializer):
@@ -15,13 +15,13 @@ class BookItemSerializerDetail(serializers.ModelSerializer):
 
     class Meta:
         model = BookItem
-        fields = ('book', 'status', 'owner')
+        fields = ('book', 'status', 'owner', 'id')
 
 
 class BookSerializerDetail(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = ('title', 'authors', 'genre', 'description')
+        fields = ('title', 'authors', 'genre', 'description', 'id')
 
 
 class BookItemSerializerList(serializers.ModelSerializer):
@@ -29,15 +29,15 @@ class BookItemSerializerList(serializers.ModelSerializer):
 
     class Meta:
         model = BookItem
-        fields = ('status', 'owner')
+        fields = ('status', 'owner', 'id')
 
 
 class SwapSerializerList(serializers.ModelSerializer):
-    book = BookItemSerializerList()
+    book = BookItemSerializerDetail()
 
     class Meta:
-        model = BookItem
-        fields = ('book', 'status')
+        model = Swap
+        fields = ('book', 'status', 'id')
 
 
 class SwapSerializerDetail(serializers.ModelSerializer):
@@ -46,4 +46,4 @@ class SwapSerializerDetail(serializers.ModelSerializer):
 
     class Meta:
         model = Swap
-        fields = ('book', 'reader', 'status')
+        fields = ('book', 'reader', 'status', 'id')

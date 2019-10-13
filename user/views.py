@@ -1,12 +1,13 @@
+from django.core.serializers import json
+from django.http import JsonResponse
 from rest_framework.authtoken.models import Token
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 
+from user.forms import UserForm
 from user.models import User
-from library.models import BookItem, Swap
 from user.serializers import UserSerializer
-from library.serializers import BookItemSerializerList, BookItemSerializerDetail, SwapSerializerList
 from rest_framework.permissions import IsAuthenticated
 
 #todo шифровать пароль при регистрации и входе
@@ -25,34 +26,6 @@ class UserDetailView(generics.RetrieveAPIView):
 
 
 @permission_classes([IsAuthenticated])
-class UserBookListView(generics.ListCreateAPIView):
-    serializer_class = BookItemSerializerList
-    queryset = BookItem.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=self.kwargs['pk'])
-        books = self.queryset.filter(owner=user)
-        serializer = self.get_serializer(books, many=True)
-        resp = Response(serializer.data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
-
-
-@permission_classes([IsAuthenticated])
-class BookDetailView(generics.RetrieveAPIView):
-    serializer_class = BookItemSerializerDetail
-    queryset = BookItem.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        book_id = self.kwargs['id']
-        book = BookItem.objects.get(id=book_id)
-        serializer = self.get_serializer(book)
-        resp =  Response(serializer.data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
-
-
-@permission_classes([IsAuthenticated])
 class MeDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -66,15 +39,36 @@ class MeDetailView(generics.RetrieveAPIView):
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
+    def put(self, request, *args, **kwargs):
+        if request.content_type == 'text/plain;charset=UTF-8':
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.data
+        token = request.headers['Authorization'][6:]
+        django_user = Token.objects.get(key=token).user
+        user = User.objects.get(django_user=django_user)
+        form = UserForm(data)
+        if form.is_valid():
+            user.first_name = data['first_name']
+            user.last_name = data['last_name']
+            user.save()
+            resp = Response()
+            resp['Access-Control-Allow-Origin'] = '*'
+            return resp
+        else:
+            resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
+            resp['Access-Control-Allow-Origin'] = '*'
+            return resp
+
 
 @permission_classes([IsAuthenticated])
-class UserSwapListView(generics.ListCreateAPIView):
-    serializer_class = SwapSerializerList
-    queryset = Swap.objects.all()
+class UserListView(generics.RetrieveAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
 
     def get(self, request, *args, **kwargs):
-        pass
-
-@permission_classes([IsAuthenticated])
-class UserSwapDetailView(generics.ListCreateAPIView):
-    pass
+        users = User.objects.all()
+        serializer = self.get_serializer(users, many=True)
+        resp = Response(serializer.data)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
