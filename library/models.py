@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from user.models import User
+from capsula import settings
 
 
 class Book(models.Model):
@@ -69,6 +70,13 @@ class Book(models.Model):
         return self.title
 
 
+def photo_upload_path(instance, *args, **kwargs):
+    """Generates upload path for ImageField/FileField"""
+    name = '%s.jpg' % str(instance.id)
+    location = 'books/%s' % name
+    return location
+
+
 class BookItem (models.Model):
     AVAILABLE = 0
     READING = 1
@@ -87,6 +95,11 @@ class BookItem (models.Model):
     )
     isbn = models.CharField(verbose_name='ISBN', max_length=255, blank=True, default='')
     status = models.IntegerField(verbose_name='Статус книги', choices=BOOK_ITEM_STATUSES, default=AVAILABLE)
+    image = models.ImageField(
+        storage=settings.DEFAULT_FILE_STORAGE, verbose_name='Аватар', upload_to=photo_upload_path,
+        default='', blank=True,
+        null=True
+    )
 
     class Meta:
         verbose_name = 'Экземпляр книги'
