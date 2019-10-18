@@ -1,11 +1,9 @@
-from PIL import Image
-import io
 import base64
 
 from rest_framework.authtoken.models import Token
 from botocore.exceptions import ClientError
 
-from capsula.__init__ import s3_client, s3
+from capsula.__init__ import s3_client
 from capsula import settings
 from user.models import User
 

@@ -16,6 +16,7 @@ from user.serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated
 
 #todo шифровать пароль при регистрации и входе
+# https://habr.com/ru/post/120380/ статья по безопасной передаче логина-пароля с фронта на бэк
 @permission_classes([IsAuthenticated])
 class UserDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer

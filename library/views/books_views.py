@@ -66,7 +66,7 @@ class BookItemsDetailView(generics.RetrieveAPIView):
         book_id = self.kwargs['id']
         book = get_object_or_404(BookItem, pk=book_id)
         if book.owner != user:
-            resp = JsonResponse({'msg': 'Пользователь может редактировать только свои книги'}, status=403)
+            resp = JsonResponse({'detail': 'Пользователь может редактировать только свои книги'}, status=403)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
         # How to validate every field?
@@ -89,7 +89,7 @@ class BookItemsDetailView(generics.RetrieveAPIView):
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
         else:
-            resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
+            resp = JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
 
@@ -98,7 +98,7 @@ class BookItemsDetailView(generics.RetrieveAPIView):
         book_id = self.kwargs['id']
         book = get_object_or_404(BookItem, pk=book_id)
         if book.owner != user:
-            resp = JsonResponse({'msg': 'Пользователь может удалять только свои книги'}, status=403)
+            resp = JsonResponse({'detail': 'Пользователь может удалять только свои книги'}, status=403)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
         else:
@@ -125,7 +125,7 @@ class BookItemsListView(generics.RetrieveAPIView):
             if check_key_existing(file_path):
                 book_data['image'] = get_b64str_from_path(file_path)
             data.append(book_data)
-        resp = JsonResponse({'data': data})
+        resp = Response(data)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
@@ -152,23 +152,24 @@ class BookItemsListView(generics.RetrieveAPIView):
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
         else:
-            resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
+            resp = JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
 
 
 @permission_classes([IsAuthenticated])
 def get_other_user_books_list(request, id):
-    owner = get_object_or_404(User, pk=id)
-    books = BookItem.objects.filter(owner=owner)
-    data = []
-    for book in books:
-        serializer = BookItemSerializerDetail(book)
-        book_data = serializer.data
-        file_path = 'books/{}/{}.jpg'.format(owner.id, book.id)
-        if check_key_existing(file_path):
-            book_data['image'] = get_b64str_from_path(file_path)
-        data.append(book_data)
-    resp = JsonResponse({'data': data})
-    resp['Access-Control-Allow-Origin'] = '*'
-    return resp
+    if request.method == 'GET':
+        owner = get_object_or_404(User, pk=id)
+        books = BookItem.objects.filter(owner=owner)
+        data = []
+        for book in books:
+            serializer = BookItemSerializerDetail(book)
+            book_data = serializer.data
+            file_path = 'books/{}/{}.jpg'.format(owner.id, book.id)
+            if check_key_existing(file_path):
+                book_data['image'] = get_b64str_from_path(file_path)
+            data.append(book_data)
+        resp = JsonResponse({'data': data})
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp

@@ -11,8 +11,9 @@ from library.serializers import SwapSerializerList, SwapSerializerDetail
 from library.forms import SwapForm
 from user.models import User
 
+
 @permission_classes([IsAuthenticated])
-class SwapListlView(generics.RetrieveAPIView):
+class SwapListView(generics.RetrieveAPIView):
     serializer_class = SwapSerializerList
     queryset = Swap.objects.all()
 
@@ -57,6 +58,7 @@ class SwapListlView(generics.RetrieveAPIView):
             resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
+
 
 @permission_classes([IsAuthenticated])
 class SwapDetailView(generics.ListCreateAPIView):
