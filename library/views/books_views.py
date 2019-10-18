@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.utils import json
 
+from user.models import User, DjangoUser
 from library.models import Book, BookItem
 from library.serializers import BookSerializerList, BookItemSerializerDetail, BookSerializerDetail, \
     BookItemSerializerList
@@ -154,3 +155,20 @@ class BookItemsListView(generics.RetrieveAPIView):
             resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
+
+
+@permission_classes([IsAuthenticated])
+def get_other_user_books_list(request, id):
+    owner = get_object_or_404(User, pk=id)
+    books = BookItem.objects.filter(owner=owner)
+    data = []
+    for book in books:
+        serializer = BookItemSerializerDetail(book)
+        book_data = serializer.data
+        file_path = 'books/{}/{}.jpg'.format(owner.id, book.id)
+        if check_key_existing(file_path):
+            book_data['image'] = get_b64str_from_path(file_path)
+        data.append(book_data)
+    resp = JsonResponse({'data': data})
+    resp['Access-Control-Allow-Origin'] = '*'
+    return resp

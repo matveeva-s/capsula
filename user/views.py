@@ -78,15 +78,13 @@ class UserListView(generics.RetrieveAPIView):
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
-# from django.views.decorators.csrf import csrf_exempt
-# @csrf_exempt
+
 @permission_classes([IsAuthenticated])
 def change_avatar(request, pk):
     user = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
-        user_avatar = request.FILES['image']
+        user_avatar = request.FILES.get('image')
         upload_path = 'avatar/{}'.format(pk)
         upload_file(upload_path, user_avatar)
-
     return JsonResponse({})
 
