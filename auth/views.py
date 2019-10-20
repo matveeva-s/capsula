@@ -11,6 +11,7 @@ from rest_framework.utils import json
 from auth.forms import UserAuthForm, DjangoUserAuthForm
 from user.models import User
 from user.serializers import UserSerializer
+from capsula.utils import get_b64str_from_path, check_key_existing
 
 
 class LoginView(generics.RetrieveAPIView):
@@ -34,7 +35,11 @@ class LoginView(generics.RetrieveAPIView):
         token = Token.objects.get_or_create(user=auth_user)
         user = User.objects.get(django_user=auth_user)
         serializer = self.get_serializer(user)
-        resp = JsonResponse({**{'token': token[0].key}, **serializer.data})
+        data = serializer.data
+        avatar_path_key = 'avatar/{}.jpg'.format(user.id)
+        if check_key_existing(avatar_path_key):
+            data['image'] = get_b64str_from_path(avatar_path_key)
+        resp = JsonResponse({**{'token': token[0].key}, **data })
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
