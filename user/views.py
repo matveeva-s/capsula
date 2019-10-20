@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.utils import json
 from rest_framework.permissions import IsAuthenticated
 
-from capsula.utils import upload_file, get_user_from_request, check_key_existing
+from capsula.utils import upload_file, get_user_from_request, check_key_existing, get_b64str_from_path
 from user.forms import UserForm
 from user.models import User
 from user.serializers import UserSerializer
@@ -36,7 +36,11 @@ class MeDetailView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         user = get_user_from_request(request)
         serializer = self.get_serializer(user)
-        resp = Response(serializer.data)
+        data = serializer.data
+        avatar_path_key = 'avatar/{}.jpg'.format(user.id)
+        if check_key_existing(avatar_path_key):
+            data['image'] = get_b64str_from_path(avatar_path_key)
+        resp = Response(data)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
