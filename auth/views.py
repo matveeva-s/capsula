@@ -2,6 +2,7 @@ from builtins import KeyError
 
 from django.contrib.auth.models import User as DjangoUser
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from rest_framework import generics
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import permission_classes
@@ -54,6 +55,7 @@ class LoginView(generics.RetrieveAPIView):
                 user = User.objects.create(django_user=django_user,
                                            first_name=django_user.first_name,
                                            last_name=django_user.last_name,
+                                           email= django_user.email,
                                            contact=vk_user.uid)
             else:
                 user = User.objects.get(django_user=django_user)
@@ -79,6 +81,9 @@ class LogoutView(generics.RetrieveAPIView):
         user = Token.objects.get(key=token).user
         if user:
             Token.objects.get(key=token).delete()
+            vk_user = UserSocialAuth.objects.filter(user=user)
+          #  if len(vk_user) > 0:
+           #     return redirect('http://127.0.0.1:8000/auth/disconnect')
         try:
             del request.session['member_id']
         except KeyError:
