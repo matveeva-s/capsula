@@ -10,7 +10,6 @@ from rest_framework.utils import json
 from social_django.models import UserSocialAuth
 
 from auth.forms import UserAuthForm, DjangoUserAuthForm
-from capsula.utils import check_key_existing, get_b64str_from_path
 from user.models import User
 from user.serializers import UserSerializer
 
