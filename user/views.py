@@ -59,7 +59,7 @@ class MeDetailView(generics.RetrieveAPIView):
                 user_avatar = request.data.get('image')
                 upload_path = 'avatar/{}.jpg'.format(user.id)
                 upload_file(upload_path, user_avatar)
-                user.image = MEDIA_URL + upload_path
+                user.avatar = MEDIA_URL + upload_path
             user.save()
             resp = Response()
             resp['Access-Control-Allow-Origin'] = '*'
