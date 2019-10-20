@@ -7,7 +7,7 @@ from rest_framework.utils import json
 
 from library.models import Swap, BookItem
 from library.serializers import SwapSerializerList, SwapSerializerDetail
-from capsula.utils import get_user_from_request, check_key_existing, get_b64str_from_path
+from capsula.utils import get_user_from_request
 
 
 @permission_classes([IsAuthenticated])
@@ -31,9 +31,7 @@ class RequestsListView(generics.ListCreateAPIView):
             data['status'] = swap.status
             data['reader'] = '{} {}'.format(swap.reader.first_name, swap.reader.last_name)
             data['date'] = swap.created_at
-            image_location_key = 'books/{}/{}.jpg'.format(user.id, swap.book.id)
-            if check_key_existing(image_location_key):
-                data['image'] = get_b64str_from_path(image_location_key)
+            data['image'] = swap.book.image
             data_owner.append(data)
         for swap in swaps_reader:
             data = {}
@@ -44,10 +42,7 @@ class RequestsListView(generics.ListCreateAPIView):
             data['status'] = swap.status
             data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
             data['date'] = swap.created_at
-            image_location_key = 'books/{}/{}.jpg'.format(swap.book.owner.id, swap.book.id)
-            if check_key_existing(image_location_key):
-                data['image'] = get_b64str_from_path(image_location_key)
-            data_reader.append(data)
+            data['image'] = swap.book.image
         resp = JsonResponse({'owner': data_owner, 'reader': data_reader})
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
@@ -92,9 +87,7 @@ class SwapDetailView(generics.ListCreateAPIView):
         data['genre'] = swap.book.book.genre
         data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
         data['date'] = swap.created_at
-        image_location_key = 'books/{}/{}.jpg'.format(swap.book.owner.id, swap.book.id)
-        if check_key_existing(image_location_key):
-            data['image'] = get_b64str_from_path(image_location_key)
+        data['image'] = swap.book.image
         resp = JsonResponse(data)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp

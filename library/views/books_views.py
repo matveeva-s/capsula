@@ -11,7 +11,8 @@ from library.models import Book, BookItem
 from library.serializers import BookSerializerList, BookItemSerializerDetail, BookSerializerDetail, \
     BookItemSerializerList
 from library.forms import BookForm, BookItemForm
-from capsula.utils import upload_file, get_user_from_request, check_key_existing, get_b64str_from_path, delete_file
+from capsula.utils import upload_file, get_user_from_request, delete_file
+from capsula.settings import MEDIA_URL
 
 
 @permission_classes([IsAuthenticated])
@@ -103,15 +104,12 @@ class BookItemsDetailView(generics.RetrieveAPIView):
             return resp
         else:
             get_object_or_404(BookItem, pk=book_id).delete()
-            delete_file('books/{}/{}.jpg'.format(user.id, book_id))
+            if book.image:
+                delete_file('books/{}/{}.jpg'.format(user.id, book_id))
             resp = JsonResponse({})
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
 
-
-import base64
-import io, re
-from PIL import Image
 
 @permission_classes([IsAuthenticated])
 class BookItemsListView(generics.ListCreateAPIView):
@@ -125,9 +123,7 @@ class BookItemsListView(generics.ListCreateAPIView):
         for book in books:
             serializer = self.get_serializer(book)
             book_data = serializer.data
-            file_path = 'books/{}/{}.jpg'.format(owner.id, book.id)
-            if check_key_existing(file_path):
-                book_data['image'] = get_b64str_from_path(file_path)
+            book_data['image'] = book.image
             data.append(book_data)
         resp = Response(data)
         resp['Access-Control-Allow-Origin'] = '*'
@@ -151,7 +147,10 @@ class BookItemsListView(generics.ListCreateAPIView):
             book_item = BookItem.objects.create(book=book, owner=user)
             image = request.data.get('image')
             if image:
-                upload_file('books/{}/{}.jpg'.format(user.id, book_item.id), image)
+                path = 'books/{}/{}.jpg'.format(user.id, book_item.id)
+                upload_file(path, image)
+                book_item.image = MEDIA_URL + path
+                book_item.save()
             resp = JsonResponse({})
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
@@ -170,9 +169,7 @@ def get_other_user_books_list(request, id):
         for book in books:
             serializer = BookItemSerializerDetail(book)
             book_data = serializer.data
-            file_path = 'books/{}/{}.jpg'.format(owner.id, book.id)
-            if check_key_existing(file_path):
-                book_data['image'] = get_b64str_from_path(file_path)
+            book_data['image'] = book.image
             data.append(book_data)
         resp = JsonResponse({'data': data})
         resp['Access-Control-Allow-Origin'] = '*'

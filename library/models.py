@@ -95,11 +95,7 @@ class BookItem (models.Model):
     )
     isbn = models.CharField(verbose_name='ISBN', max_length=255, blank=True, default='')
     status = models.IntegerField(verbose_name='Статус книги', choices=BOOK_ITEM_STATUSES, default=AVAILABLE)
-    image = models.ImageField(
-        storage=settings.DEFAULT_FILE_STORAGE, verbose_name='Аватар', upload_to=photo_upload_path,
-        default='', blank=True,
-        null=True
-    )
+    image = models.CharField('URL картинки', max_length=150, unique=True, blank=False, null=True)
 
     class Meta:
         verbose_name = 'Экземпляр книги'

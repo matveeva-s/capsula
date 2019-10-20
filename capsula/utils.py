@@ -35,22 +35,5 @@ def get_user_from_request(request):
     return user
 
 
-def check_key_existing(key):
-    try:
-        s3_client.head_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=key)
-    except ClientError as e:
-        return False
-    return True
-
-
-def get_b64str_from_path(file_path):
-    encoded_string = base64.b64encode(download_file(file_path)).decode('utf-8')
-    return encoded_string
-
-
 def delete_file(file_path):
-    if check_key_existing(file_path):
-        s3_client.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=file_path)
-        return True
-    else:
-        return False
+    s3_client.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=file_path)

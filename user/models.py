@@ -28,11 +28,7 @@ class User(models.Model):
     first_name = models.CharField('Имя', max_length=30, blank=True)
     last_name = models.CharField('Фамилия', max_length=30, blank=True)
     email = models.EmailField('Email', max_length=150, unique=True)
-    avatar = models.ImageField(
-        storage=settings.DEFAULT_FILE_STORAGE, verbose_name='Аватар', upload_to=photo_upload_path,
-        default='', blank=True,
-        null=True
-    )
+    avatar = models.CharField('URL аватара', max_length=150, unique=True, blank=False, null=True)
     location = models.TextField('Местоположение', max_length=200, blank=True, null=True)
     contact = models.TextField('Контакты', max_length=150, blank=True, null=True)
 
