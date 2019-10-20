@@ -28,6 +28,7 @@ class RequestsListView(generics.ListCreateAPIView):
             data['book'] = swap.book.book.title
             data['authors'] = swap.book.book.authors
             data['genre'] = swap.book.book.genre
+            data['status'] = swap.status
             data['reader'] = '{} {}'.format(swap.reader.first_name, swap.reader.last_name)
             data['date'] = swap.created_at
             image_location_key = 'books/{}/{}.jpg'.format(user.id, swap.book.id)
@@ -40,6 +41,7 @@ class RequestsListView(generics.ListCreateAPIView):
             data['book'] = swap.book.book.title
             data['authors'] = swap.book.book.authors
             data['genre'] = swap.book.book.genre
+            data['status'] = swap.status
             data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
             data['date'] = swap.created_at
             image_location_key = 'books/{}/{}.jpg'.format(swap.book.owner.id, swap.book.id)

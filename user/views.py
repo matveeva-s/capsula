@@ -1,7 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.core.serializers import json
 from django.http import JsonResponse
-from rest_framework.authtoken.models import Token
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
@@ -53,8 +52,8 @@ class MeDetailView(generics.RetrieveAPIView):
             user.last_name = data.get('last_name')
             user.location = data.get('location')
             user.contact = data.get('vk')
-            if request.FILES.get('image'):
-                user_avatar = request.FILES.get('image')
+            if request.data.get('image'):
+                user_avatar = request.data.get('image')
                 upload_path = 'avatar/{}.jpg'.format(user.id)
                 upload_file(upload_path, user_avatar)
             user.save()
@@ -76,18 +75,6 @@ class UserListView(generics.RetrieveAPIView):
         users = User.objects.all()
         serializer = self.get_serializer(users, many=True)
         resp = Response(serializer.data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
-
-
-@permission_classes([IsAuthenticated])
-def change_avatar(request, pk):
-    user = get_object_or_404(User, pk=pk)
-    if request.method == 'POST':
-        user_avatar = request.FILES.get('image')
-        upload_path = 'avatar/{}'.format(pk)
-        upload_file(upload_path, user_avatar)
-        resp = JsonResponse({})
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 

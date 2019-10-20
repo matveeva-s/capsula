@@ -1,4 +1,6 @@
 import base64
+import re
+import io
 
 from rest_framework.authtoken.models import Token
 from botocore.exceptions import ClientError
@@ -8,11 +10,13 @@ from capsula import settings
 from user.models import User
 
 
-def upload_file(path, file):
+def upload_file(path, b64file):
+    b64file = re.sub('^data:image/.+;base64,', '', b64file) #deleting content-type prefix
+    image = io.BytesIO(base64.b64decode(b64file))
     s3_client.put_object(
         Bucket=settings.AWS_STORAGE_BUCKET_NAME,
         Key=path,
-        Body=file
+        Body=image
     )
 
 

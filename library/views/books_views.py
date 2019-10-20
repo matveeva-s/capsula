@@ -109,6 +109,10 @@ class BookItemsDetailView(generics.RetrieveAPIView):
             return resp
 
 
+import base64
+import io, re
+from PIL import Image
+
 @permission_classes([IsAuthenticated])
 class BookItemsListView(generics.ListCreateAPIView):
     serializer_class = BookItemSerializerDetail
@@ -145,7 +149,7 @@ class BookItemsListView(generics.ListCreateAPIView):
             else:
                 book = form.save()
             book_item = BookItem.objects.create(book=book, owner=user)
-            image = request.FILES.get('image')
+            image = request.data.get('image')
             if image:
                 upload_file('books/{}/{}.jpg'.format(user.id, book_item.id), image)
             resp = JsonResponse({})
