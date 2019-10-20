@@ -7,8 +7,10 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.utils import json
+from social_django.models import UserSocialAuth
 
 from auth.forms import UserAuthForm, DjangoUserAuthForm
+from capsula.utils import check_key_existing, get_b64str_from_path
 from user.models import User
 from user.serializers import UserSerializer
 
@@ -39,6 +41,34 @@ class LoginView(generics.RetrieveAPIView):
         resp = JsonResponse({**{'token': token[0].key}, **data})
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            resp = JsonResponse({}, status=204)
+            resp['Access-Control-Allow-Origin'] = '*'
+            return resp
+        else:
+            django_user = request.user
+            user = User.objects.filter(django_user=django_user)
+            if len(user) == 0:
+                vk_user = UserSocialAuth.objects.get(user=django_user)
+                user = User.objects.create(django_user=django_user,
+                                           first_name=django_user.first_name,
+                                           last_name=django_user.last_name,
+                                           contact=vk_user.uid)
+            else:
+                user = User.objects.get(django_user=django_user)
+            token = Token.objects.get_or_create(user=django_user)
+            serializer = self.get_serializer(user)
+            data = serializer.data
+            avatar_path_key = 'avatar/{}.jpg'.format(user.id)
+            if check_key_existing(avatar_path_key):
+                data['image'] = get_b64str_from_path(avatar_path_key)
+            resp = JsonResponse({**{'token': token[0].key}, **data})
+            resp['Access-Control-Allow-Origin'] = '*'
+            return resp
+
+
 
 
 @permission_classes([IsAuthenticated])
