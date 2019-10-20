@@ -28,7 +28,7 @@ class BookItemSerializerList(serializers.ModelSerializer):
 
     class Meta:
         model = BookItem
-        fields = ('status', 'owner', 'id')
+        fields = ('status', 'owner', 'id', 'image')
 
 
 class SwapSerializerList(serializers.ModelSerializer):
