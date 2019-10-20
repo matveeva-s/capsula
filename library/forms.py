@@ -13,8 +13,3 @@ class BookItemForm(forms.ModelForm):
         model = BookItem
         fields = ('status', 'isbn')
 
-
-class SwapForm(forms.ModelForm):
-    class Meta:
-        model = Swap
-        fields = ('id', 'status')

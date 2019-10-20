@@ -1,31 +1,52 @@
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.utils import json
-from rest_framework.authtoken.models import Token
 
 from library.models import Swap, BookItem
 from library.serializers import SwapSerializerList, SwapSerializerDetail
-from library.forms import SwapForm
-from user.models import User
+from capsula.utils import get_user_from_request, check_key_existing, get_b64str_from_path
 
 
 @permission_classes([IsAuthenticated])
-class SwapListView(generics.RetrieveAPIView):
+class RequestsListView(generics.ListCreateAPIView):
     serializer_class = SwapSerializerList
     queryset = Swap.objects.all()
 
     def get(self, request, *args, **kwargs):
-        token = request.headers['Authorization'][6:]
-        django_user = Token.objects.get(key=token).user
-        user = User.objects.get(django_user=django_user)
+        user = get_user_from_request(request)
         swaps_reader = Swap.objects.filter(reader=user)
         swaps_owner = Swap.objects.filter(book__owner=user)
-        serializer_owner = self.get_serializer(swaps_owner, many=True)
-        serializer_reader = self.get_serializer(swaps_reader, many=True)
-        resp = Response({**{'owner': serializer_owner.data}, **{'reader': serializer_reader.data}})
+        data_owner = []
+        data_reader = []
+        # todo check times DB hitting and optimize with select_related
+        for swap in swaps_owner:
+            data = {}
+            data['id'] = swap.id
+            data['book'] = swap.book.book.title
+            data['authors'] = swap.book.book.authors
+            data['genre'] = swap.book.book.genre
+            data['reader'] = '{} {}'.format(swap.reader.first_name, swap.reader.last_name)
+            data['date'] = swap.created_at
+            image_location_key = 'books/{}/{}.jpg'.format(user.id, swap.book.id)
+            if check_key_existing(image_location_key):
+                data['image'] = get_b64str_from_path(image_location_key)
+            data_owner.append(data)
+        for swap in swaps_reader:
+            data = {}
+            data['id'] = swap.id
+            data['book'] = swap.book.book.title
+            data['authors'] = swap.book.book.authors
+            data['genre'] = swap.book.book.genre
+            data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
+            data['date'] = swap.created_at
+            image_location_key = 'books/{}/{}.jpg'.format(swap.book.owner.id, swap.book.id)
+            if check_key_existing(image_location_key):
+                data['image'] = get_b64str_from_path(image_location_key)
+            data_reader.append(data)
+        resp = JsonResponse({'owner': data_owner, 'reader': data_reader})
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
@@ -34,30 +55,19 @@ class SwapListView(generics.RetrieveAPIView):
             data = json.loads(request.body.decode('utf-8'))
         else:
             data = request.data
-        form = SwapForm(data)
-        if form.is_valid():
-            bookitem = BookItem.objects.get(id=data["book_id"])
-            if bookitem.status == BookItem.AVAILABLE:
-                token = request.headers['Authorization'][6:]
-                django_user = Token.objects.get(key=token).user
-                user = User.objects.get(django_user=django_user)
-                swap = Swap.objects.create(book=bookitem, reader=user, status=Swap.CONSIDERED)
-                swap.save()
-            elif bookitem:
-                resp = JsonResponse({'msg': 'Книга недоступна'}, status=403)
-                resp['Access-Control-Allow-Origin'] = '*'
-                return resp
-            else:
-                resp = JsonResponse({'msg': 'Книга не найдена'}, status=404)
-                resp['Access-Control-Allow-Origin'] = '*'
-                return resp
+        bookitem = get_object_or_404(BookItem, pk=data["book_id"])
+        if bookitem.status == BookItem.AVAILABLE:
+            user = get_user_from_request(request)
+            Swap.objects.create(book=bookitem, reader=user, status=Swap.CONSIDERED)
             resp = JsonResponse({})
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
+        elif bookitem.status == BookItem.NOT_AVAILABLE:
+            resp = JsonResponse({'detail': 'Книга недоступна'}, status=403)
         else:
-            resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            resp = JsonResponse({'detail': 'Книга читается другим пользователем'}, status=403)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 
 @permission_classes([IsAuthenticated])
@@ -67,21 +77,23 @@ class SwapDetailView(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         swap_id = self.kwargs['id']
-        try:
-            swap = Swap.objects.get(id=swap_id)
-        except Exception:
-            resp = JsonResponse({'msg': 'Заявка не найдена'}, status=404)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
-        token = request.headers['Authorization'][6:]
-        django_user = Token.objects.get(key=token).user
-        user = User.objects.get(django_user=django_user)
+        swap = get_object_or_404(Swap, pk=swap_id)
+        user = get_user_from_request(request)
         if (swap.reader != user) and (swap.book.owner != user):
-            resp = JsonResponse({'msg': 'Заявка недоступна для просмотра'}, status=403)
+            resp = JsonResponse({'detail': 'Заявка недоступна для просмотра'}, status=403)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
-        serializer = self.get_serializer(swap)
-        resp = Response(serializer.data)
+        data = {}
+        data['id'] = swap.id
+        data['book'] = swap.book.book.title
+        data['authors'] = swap.book.book.authors
+        data['genre'] = swap.book.book.genre
+        data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
+        data['date'] = swap.created_at
+        image_location_key = 'books/{}/{}.jpg'.format(swap.book.owner.id, swap.book.id)
+        if check_key_existing(image_location_key):
+            data['image'] = get_b64str_from_path(image_location_key)
+        resp = JsonResponse(data)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
@@ -90,16 +102,9 @@ class SwapDetailView(generics.ListCreateAPIView):
             data = json.loads(request.body.decode('utf-8'))
         else:
             data = request.data
-        token = request.headers['Authorization'][6:]
-        django_user = Token.objects.get(key=token).user
-        user = User.objects.get(django_user=django_user)
+        user = get_user_from_request(request)
         swap_id = self.kwargs['id']
-        try:
-            swap = Swap.objects.get(id=swap_id)
-        except Exception:
-            resp = JsonResponse({'msg': 'Заявка не найдена'}, status=404)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+        swap = get_object_or_404(Swap, pk=swap_id)
         if swap.book.owner == user and swap.status == Swap.CONSIDERED:
             if data['status'] == Swap.REJECTED:
                 swap.status = data['status']
@@ -109,14 +114,10 @@ class SwapDetailView(generics.ListCreateAPIView):
                 swap.book.save()
                 swap.status = data['status']
                 swap.save()
-            else:
-                resp = JsonResponse({'msg': 'Изменение запрещено'}, status=403)
-                resp['Access-Control-Allow-Origin'] = '*'
-                return resp
             resp = JsonResponse({})
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
-        if swap.book.owner == user and swap.status == Swap.READING and data['status'] == Swap.RETURNED:
+        elif swap.book.owner == user and swap.status == Swap.READING and data['status'] == Swap.RETURNED:
             swap.status = data['status']
             swap.save()
             resp = JsonResponse({})
@@ -128,23 +129,19 @@ class SwapDetailView(generics.ListCreateAPIView):
             resp = JsonResponse({})
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
-        resp = JsonResponse({'msg': 'Изменение запрещено'}, status=403)
+        resp = JsonResponse({'detail': 'Изменение запрещено'}, status=403)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
 
     def delete(self, request, *args, **kwargs):
-        token = request.headers['Authorization'][6:]
-        django_user = Token.objects.get(key=token).user
-        user = User.objects.get(django_user=django_user)
+        user = get_user_from_request(request)
         swap_id = self.kwargs['id']
-        swap = Swap.objects.get(id=swap_id)
+        swap = get_object_or_404(Swap, pk=swap_id)
         if swap.reader == user and swap.status == Swap.CONSIDERED:
-            Swap.objects.get(id=swap_id).delete()
+            swap.delete()
             resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
         else:
-            resp = JsonResponse({'msg': 'Невозможно удалить заявку'}, status=403)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            resp = JsonResponse({'detail': 'Невозможно удалить заявку'}, status=403)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 

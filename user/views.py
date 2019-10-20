@@ -1,4 +1,3 @@
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.core.serializers import json
 from django.http import JsonResponse
@@ -8,12 +7,11 @@ from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework.utils import json
 from rest_framework.permissions import IsAuthenticated
+
+from capsula.utils import upload_file, get_user_from_request, check_key_existing
 from user.forms import UserForm
 from user.models import User
 from user.serializers import UserSerializer
-from capsula.utils import upload_file
-from user.serializers import UserSerializer
-from rest_framework.permissions import IsAuthenticated
 
 #todo шифровать пароль при регистрации и входе
 # https://habr.com/ru/post/120380/ статья по безопасной передаче логина-пароля с фронта на бэк
@@ -37,9 +35,7 @@ class MeDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
 
     def get(self, request, *args, **kwargs):
-        token = request.headers['Authorization'][6:]
-        django_user = Token.objects.get(key=token).user
-        user = User.objects.get(django_user=django_user)
+        user = get_user_from_request(request)
         serializer = self.get_serializer(user)
         resp = Response(serializer.data)
         resp['Access-Control-Allow-Origin'] = '*'
@@ -50,19 +46,23 @@ class MeDetailView(generics.RetrieveAPIView):
             data = json.loads(request.body.decode('utf-8'))
         else:
             data = request.data
-        token = request.headers['Authorization'][6:]
-        django_user = Token.objects.get(key=token).user
-        user = User.objects.get(django_user=django_user)
+        user = get_user_from_request(request)
         form = UserForm(data)
         if form.is_valid():
-            user.first_name = data['first_name']
-            user.last_name = data['last_name']
+            user.first_name = data.get('first_name')
+            user.last_name = data.get('last_name')
+            user.location = data.get('location')
+            user.contact = data.get('vk')
+            if request.FILES.get('image'):
+                user_avatar = request.FILES.get('image')
+                upload_path = 'avatar/{}.jpg'.format(user.id)
+                upload_file(upload_path, user_avatar)
             user.save()
             resp = Response()
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
         else:
-            resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
+            resp = JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
 
@@ -87,5 +87,7 @@ def change_avatar(request, pk):
         user_avatar = request.FILES.get('image')
         upload_path = 'avatar/{}'.format(pk)
         upload_file(upload_path, user_avatar)
-    return JsonResponse({})
+        resp = JsonResponse({})
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
 

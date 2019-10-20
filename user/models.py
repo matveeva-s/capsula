@@ -33,6 +33,8 @@ class User(models.Model):
         default='', blank=True,
         null=True
     )
+    location = models.TextField('Местоположение', max_length=200, blank=True, null=True)
+    contact = models.TextField('Контакты', max_length=150, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Пользователь'

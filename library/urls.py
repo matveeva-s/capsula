@@ -8,7 +8,7 @@ urlpatterns = [
     url(r'^((?P<id>\d+)/book_items/)$', books_views.get_other_user_books_list, name='other_user_books_list'),
     url(r'^(book_items)/(?P<id>\d+)/$', books_views.BookItemsDetailView.as_view(), name='books_item_detail'),
 
-    url(r'^(swaps/)$', swaps_views.SwapListView.as_view(), name='swaps_lists'),
+    url(r'^(swaps/)$', swaps_views.RequestsListView.as_view(), name='swaps_lists'),
     url(r'^(swaps)/(?P<id>\d+)/$', swaps_views.SwapDetailView.as_view(), name='swaps_detail'),
 
 ]

@@ -110,7 +110,7 @@ class BookItemsDetailView(generics.RetrieveAPIView):
 
 
 @permission_classes([IsAuthenticated])
-class BookItemsListView(generics.RetrieveAPIView):
+class BookItemsListView(generics.ListCreateAPIView):
     serializer_class = BookItemSerializerDetail
     queryset = BookItem.objects.all()
 
