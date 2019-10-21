@@ -14,6 +14,7 @@ from auth.forms import UserAuthForm, DjangoUserAuthForm
 from user.models import User
 from user.serializers import UserSerializer
 
+
 class LoginView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -65,8 +66,6 @@ class LoginView(generics.RetrieveAPIView):
             resp = JsonResponse({**{'token': token[0].key}, **data})
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
-
-
 
 
 @permission_classes([IsAuthenticated])

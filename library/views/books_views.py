@@ -103,7 +103,10 @@ class BookItemsDetailView(generics.RetrieveAPIView):
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
         else:
+            abstract_book = get_object_or_404(BookItem, pk=book_id).book
             get_object_or_404(BookItem, pk=book_id).delete()
+            if len(BookItem.objects.filter(book=abstract_book)) == 0:
+                abstract_book.delete()
             if book.image:
                 delete_file('books/{}/{}.jpg'.format(user.id, book_id))
             resp = JsonResponse({})
