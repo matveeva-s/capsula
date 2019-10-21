@@ -1,8 +1,8 @@
 from builtins import KeyError
 
+from django.contrib.auth import logout
 from django.contrib.auth.models import User as DjangoUser
 from django.http import JsonResponse
-from django.shortcuts import redirect
 from rest_framework import generics
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import permission_classes
@@ -13,7 +13,6 @@ from social_django.models import UserSocialAuth
 from auth.forms import UserAuthForm, DjangoUserAuthForm
 from user.models import User
 from user.serializers import UserSerializer
-
 
 class LoginView(generics.RetrieveAPIView):
     queryset = User.objects.all()
@@ -62,9 +61,7 @@ class LoginView(generics.RetrieveAPIView):
             token = Token.objects.get_or_create(user=django_user)
             serializer = self.get_serializer(user)
             data = serializer.data
-            avatar_path_key = 'avatar/{}.jpg'.format(user.id)
-            if check_key_existing(avatar_path_key):
-                data['image'] = get_b64str_from_path(avatar_path_key)
+            data['image'] = user.avatar
             resp = JsonResponse({**{'token': token[0].key}, **data})
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
@@ -82,8 +79,8 @@ class LogoutView(generics.RetrieveAPIView):
         if user:
             Token.objects.get(key=token).delete()
             vk_user = UserSocialAuth.objects.filter(user=user)
-          #  if len(vk_user) > 0:
-           #     return redirect('http://127.0.0.1:8000/auth/disconnect')
+            if len(vk_user) > 0:
+                logout(request)
         try:
             del request.session['member_id']
         except KeyError:
@@ -124,3 +121,4 @@ class RegistrationView(generics.RetrieveAPIView):
             resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
+
