@@ -1,5 +1,6 @@
 from builtins import KeyError
 
+from django.contrib.auth import logout
 from django.contrib.auth.models import User as DjangoUser
 from django.http import JsonResponse
 from rest_framework import generics
@@ -54,6 +55,7 @@ class LoginView(generics.RetrieveAPIView):
                 user = User.objects.create(django_user=django_user,
                                            first_name=django_user.first_name,
                                            last_name=django_user.last_name,
+                                           email= django_user.email,
                                            contact=vk_user.uid)
             else:
                 user = User.objects.get(django_user=django_user)
@@ -66,8 +68,6 @@ class LoginView(generics.RetrieveAPIView):
             return resp
 
 
-
-
 @permission_classes([IsAuthenticated])
 class LogoutView(generics.RetrieveAPIView):
     queryset = DjangoUser.objects.all()
@@ -77,6 +77,9 @@ class LogoutView(generics.RetrieveAPIView):
         user = Token.objects.get(key=token).user
         if user:
             Token.objects.get(key=token).delete()
+            vk_user = UserSocialAuth.objects.filter(user=user)
+            if len(vk_user) > 0:
+                logout(request)
         try:
             del request.session['member_id']
         except KeyError:
@@ -117,3 +120,4 @@ class RegistrationView(generics.RetrieveAPIView):
             resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
+
