@@ -11,6 +11,7 @@ from rest_framework.utils import json
 from social_django.models import UserSocialAuth
 
 from auth.forms import UserAuthForm, DjangoUserAuthForm
+from capsula.utils import complete_headers
 from user.models import User
 from user.serializers import UserSerializer
 
@@ -19,6 +20,7 @@ class LoginView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    @complete_headers
     def post(self, request, *args, **kwargs):
         if request.content_type == 'text/plain;charset=UTF-8':
             data = json.loads(request.body.decode('utf-8'))
@@ -30,23 +32,18 @@ class LoginView(generics.RetrieveAPIView):
         if auth_user and auth_user.check_password(password):
             request.session['member_id'] = auth_user.username
         else:
-            resp = JsonResponse({'msg': 'Ошибка входа (проверьте логин и пароль)'}, status=401)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({'msg': 'Ошибка входа (проверьте логин и пароль)'}, status=401)
         token = Token.objects.get_or_create(user=auth_user)
         user = User.objects.get(django_user=auth_user)
         serializer = self.get_serializer(user)
         data = serializer.data
         data['image'] = user.avatar
-        resp = JsonResponse({**{'token': token[0].key}, **data})
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return JsonResponse({**{'token': token[0].key}, **data})
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
-            resp = JsonResponse({}, status=204)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({}, status=204)
         else:
             django_user = request.user
             user = User.objects.filter(django_user=django_user)
@@ -63,15 +60,14 @@ class LoginView(generics.RetrieveAPIView):
             serializer = self.get_serializer(user)
             data = serializer.data
             data['image'] = user.avatar
-            resp = JsonResponse({**{'token': token[0].key}, **data})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({**{'token': token[0].key}, **data})
 
 
 @permission_classes([IsAuthenticated])
 class LogoutView(generics.RetrieveAPIView):
     queryset = DjangoUser.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         token = request.headers['Authorization'][6:]
         user = Token.objects.get(key=token).user
@@ -84,13 +80,12 @@ class LogoutView(generics.RetrieveAPIView):
             del request.session['member_id']
         except KeyError:
             pass
-        resp = JsonResponse({})
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return JsonResponse({})
 
 
 class RegistrationView(generics.RetrieveAPIView):
 
+    @complete_headers
     def post(self, request, *args, **kwargs):
         if request.content_type == 'text/plain;charset=UTF-8':
             data = json.loads(request.body.decode('utf-8'))
@@ -105,19 +100,11 @@ class RegistrationView(generics.RetrieveAPIView):
             user = user_form.save()
             user.django_user = django_user
             user.save()
-            resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({})
         else:
             if DjangoUser.objects.filter(username=data['username']).exists():
-                resp = JsonResponse({'msg': 'Пользователь с таким именем уже существует'}, status=409)
-                resp['Access-Control-Allow-Origin'] = '*'
-                return resp
+                return JsonResponse({'msg': 'Пользователь с таким именем уже существует'}, status=409)
             if user_form.errors['email'][0] == 'User with this Email already exists.':
-                resp = JsonResponse({'msg': 'Адрес электронной почты уже используется'}, status=409)
-                resp['Access-Control-Allow-Origin'] = '*'
-                return resp
-            resp = JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+                return JsonResponse({'msg': 'Адрес электронной почты уже используется'}, status=409)
+            return JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
 

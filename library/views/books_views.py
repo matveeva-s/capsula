@@ -6,12 +6,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.utils import json
 
-from user.models import User, DjangoUser
+from user.models import User
 from library.models import Book, BookItem
 from library.serializers import BookSerializerList, BookItemSerializerDetail, BookSerializerDetail, \
     BookItemSerializerList
-from library.forms import BookForm, BookItemForm
-from capsula.utils import upload_file, get_user_from_request, delete_file
+from library.forms import BookItemForm
+from capsula.utils import upload_file, get_user_from_request, delete_file, complete_headers
 from capsula.settings import MEDIA_URL
 
 
@@ -20,12 +20,11 @@ class BookListView(generics.RetrieveAPIView):
     serializer_class = BookSerializerList
     queryset = Book.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         books = Book.objects.all()
         serializer = self.get_serializer(books, many=True)
-        resp = Response(serializer.data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return Response(serializer.data)
 
 
 @permission_classes([IsAuthenticated])
@@ -33,15 +32,14 @@ class BookDetailView(generics.RetrieveAPIView):
     serializer_class = BookSerializerDetail
     queryset = BookItem.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         book_id = self.kwargs['id']
         book = get_object_or_404(Book, pk=book_id)
         book_items = BookItem.objects.filter(book=book)
         serializer = self.get_serializer(book)
         serializer_items = BookItemSerializerList(book_items, many=True)
-        resp = Response({**serializer.data, **{'book_items': serializer_items.data}})
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return Response({**serializer.data, **{'book_items': serializer_items.data}})
 
 
 @permission_classes([IsAuthenticated])
@@ -49,14 +47,14 @@ class BookItemsDetailView(generics.RetrieveAPIView):
     serializer_class = BookItemSerializerDetail
     queryset = BookItem.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         book_id = self.kwargs['id']
         book = get_object_or_404(BookItem, pk=book_id)
         serializer = self.get_serializer(book)
-        resp = Response(serializer.data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return Response(serializer.data)
 
+    @complete_headers
     def put(self, request, *args, **kwargs):
         if request.content_type == 'text/plain;charset=UTF-8':
             data = json.loads(request.body.decode('utf-8'))
@@ -67,9 +65,7 @@ class BookItemsDetailView(generics.RetrieveAPIView):
         book_id = self.kwargs['id']
         book = get_object_or_404(BookItem, pk=book_id)
         if book.owner != user:
-            resp = JsonResponse({'detail': 'Пользователь может редактировать только свои книги'}, status=403)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({'detail': 'Пользователь может редактировать только свои книги'}, status=403)
         # How to validate every field?
         # How to change field on abstr book AND in book_item?
         if form.is_valid():
@@ -86,22 +82,17 @@ class BookItemsDetailView(generics.RetrieveAPIView):
             if data.get('image'):
                 upload_file('books/{}/{}.jpg'.format(user.id, book.id), data.get('image'))
             book.save()
-            resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({})
         else:
-            resp = JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
 
+    @complete_headers
     def delete(self, request, *args, **kwargs):
         user = get_user_from_request(request)
         book_id = self.kwargs['id']
         book = get_object_or_404(BookItem, pk=book_id)
         if book.owner != user:
-            resp = JsonResponse({'detail': 'Пользователь может удалять только свои книги'}, status=403)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({'detail': 'Пользователь может удалять только свои книги'}, status=403)
         else:
             abstract_book = get_object_or_404(BookItem, pk=book_id).book
             get_object_or_404(BookItem, pk=book_id).delete()
@@ -109,9 +100,7 @@ class BookItemsDetailView(generics.RetrieveAPIView):
                 abstract_book.delete()
             if book.image:
                 delete_file('books/{}/{}.jpg'.format(user.id, book_id))
-            resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({})
 
 
 @permission_classes([IsAuthenticated])
@@ -119,6 +108,7 @@ class BookItemsListView(generics.ListCreateAPIView):
     serializer_class = BookItemSerializerDetail
     queryset = BookItem.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         owner = get_user_from_request(request)
         books = BookItem.objects.filter(owner=owner)
@@ -128,10 +118,9 @@ class BookItemsListView(generics.ListCreateAPIView):
             book_data = serializer.data
             book_data['image'] = book.image
             data.append(book_data)
-        resp = Response(data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return Response(data)
 
+    @complete_headers
     def post(self, request, *args, **kwargs):
         if request.content_type == 'text/plain;charset=UTF-8':
             data = json.loads(request.body.decode('utf-8'))
@@ -155,9 +144,7 @@ class BookItemsListView(generics.ListCreateAPIView):
             book_item.image = MEDIA_URL + path
             book_item.save()
         serializer = self.get_serializer(book_item)
-        resp = Response(serializer.data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return Response(serializer.data)
         # else:
         #     resp = JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
         #     resp['Access-Control-Allow-Origin'] = '*'
@@ -165,6 +152,7 @@ class BookItemsListView(generics.ListCreateAPIView):
 
 
 @permission_classes([IsAuthenticated])
+@complete_headers
 def get_other_user_books_list(request, id):
     if request.method == 'GET':
         owner = get_object_or_404(User, pk=id)

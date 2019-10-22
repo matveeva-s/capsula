@@ -7,7 +7,7 @@ from rest_framework.utils import json
 
 from library.models import Swap, BookItem
 from library.serializers import SwapSerializerList, SwapSerializerDetail
-from capsula.utils import get_user_from_request
+from capsula.utils import get_user_from_request, complete_headers
 
 
 @permission_classes([IsAuthenticated])
@@ -15,6 +15,7 @@ class RequestsListView(generics.ListCreateAPIView):
     serializer_class = SwapSerializerList
     queryset = Swap.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         user = get_user_from_request(request)
         swaps_reader = Swap.objects.filter(reader=user)
@@ -43,10 +44,9 @@ class RequestsListView(generics.ListCreateAPIView):
             data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
             data['date'] = swap.created_at
             data['image'] = swap.book.image
-        resp = JsonResponse({'owner': data_owner, 'reader': data_reader})
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return JsonResponse({'owner': data_owner, 'reader': data_reader})
 
+    @complete_headers
     def post(self, request, *args, **kwargs):
         if request.content_type == 'text/plain;charset=UTF-8':
             data = json.loads(request.body.decode('utf-8'))
@@ -60,11 +60,9 @@ class RequestsListView(generics.ListCreateAPIView):
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
         elif bookitem.status == BookItem.NOT_AVAILABLE:
-            resp = JsonResponse({'detail': 'Книга недоступна'}, status=403)
+            return JsonResponse({'detail': 'Книга недоступна'}, status=403)
         else:
-            resp = JsonResponse({'detail': 'Книга читается другим пользователем'}, status=403)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+            return JsonResponse({'detail': 'Книга читается другим пользователем'}, status=403)
 
 
 @permission_classes([IsAuthenticated])
@@ -72,14 +70,13 @@ class SwapDetailView(generics.ListCreateAPIView):
     serializer_class = SwapSerializerDetail
     queryset = Swap.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         swap_id = self.kwargs['id']
         swap = get_object_or_404(Swap, pk=swap_id)
         user = get_user_from_request(request)
         if (swap.reader != user) and (swap.book.owner != user):
-            resp = JsonResponse({'detail': 'Заявка недоступна для просмотра'}, status=403)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({'detail': 'Заявка недоступна для просмотра'}, status=403)
         data = {}
         data['id'] = swap.id
         data['book'] = swap.book.book.title
@@ -88,10 +85,9 @@ class SwapDetailView(generics.ListCreateAPIView):
         data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
         data['date'] = swap.created_at
         data['image'] = swap.book.image
-        resp = JsonResponse(data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return JsonResponse(data)
 
+    @complete_headers
     def put(self, request, *args, **kwargs):
         if request.content_type == 'text/plain;charset=UTF-8':
             data = json.loads(request.body.decode('utf-8'))
@@ -109,34 +105,25 @@ class SwapDetailView(generics.ListCreateAPIView):
                 swap.book.save()
                 swap.status = data['status']
                 swap.save()
-            resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({})
         elif swap.book.owner == user and swap.status == Swap.READING and data['status'] == Swap.RETURNED:
             swap.status = data['status']
             swap.save()
-            resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({})
         if swap.reader == user and swap.status == Swap.ACCEPTED and data['status'] == Swap.READING:
             swap.status = data['status']
             swap.save()
-            resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
-        resp = JsonResponse({'detail': 'Изменение запрещено'}, status=403)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+            return JsonResponse({})
+        return JsonResponse({'detail': 'Изменение запрещено'}, status=403)
 
+    @complete_headers
     def delete(self, request, *args, **kwargs):
         user = get_user_from_request(request)
         swap_id = self.kwargs['id']
         swap = get_object_or_404(Swap, pk=swap_id)
         if swap.reader == user and swap.status == Swap.CONSIDERED:
             swap.delete()
-            resp = JsonResponse({})
+            return JsonResponse({})
         else:
-            resp = JsonResponse({'detail': 'Невозможно удалить заявку'}, status=403)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+            return JsonResponse({'detail': 'Невозможно удалить заявку'}, status=403)
 

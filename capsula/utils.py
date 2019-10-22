@@ -37,3 +37,12 @@ def get_user_from_request(request):
 
 def delete_file(file_path):
     s3_client.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=file_path)
+
+
+def complete_headers(view_func):
+    def wrapped_view(*args, **kwargs):
+        response = view_func(*args, **kwargs)
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+    return wrapped_view
+

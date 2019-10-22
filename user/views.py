@@ -8,7 +8,7 @@ from rest_framework.utils import json
 from rest_framework.permissions import IsAuthenticated
 
 from capsula.settings import MEDIA_URL
-from capsula.utils import upload_file, get_user_from_request
+from capsula.utils import upload_file, get_user_from_request, complete_headers
 from user.forms import UserForm
 from user.models import User
 from user.serializers import UserSerializer
@@ -20,13 +20,12 @@ class UserDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         user_id = self.kwargs['pk']
         user = User.objects.get(id=user_id)
         serializer = self.get_serializer(user)
-        resp = Response(serializer.data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return Response(serializer.data)
 
 
 @permission_classes([IsAuthenticated])
@@ -34,14 +33,14 @@ class MeDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         user = get_user_from_request(request)
         serializer = self.get_serializer(user)
         data = serializer.data
-        resp = Response(data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return Response(data)
 
+    @complete_headers
     def put(self, request, *args, **kwargs):
         if request.content_type == 'text/plain;charset=UTF-8':
             data = json.loads(request.body.decode('utf-8'))
@@ -63,15 +62,9 @@ class MeDetailView(generics.RetrieveAPIView):
             user.save()
             serializer = self.get_serializer(user)
             data = serializer.data
-            # print(user.first_name, user.location, user.contact)
-            # print(data)
-            resp = Response(data)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return Response(data)
         else:
-            resp = JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
 
 
 @permission_classes([IsAuthenticated])
@@ -79,10 +72,9 @@ class UserListView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
+    @complete_headers
     def get(self, request, *args, **kwargs):
         users = User.objects.all()
         serializer = self.get_serializer(users, many=True)
-        resp = Response(serializer.data)
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return Response(serializer.data)
 
