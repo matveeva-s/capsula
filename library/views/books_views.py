@@ -134,30 +134,31 @@ class BookItemsListView(generics.ListCreateAPIView):
             data = json.loads(request.body.decode('utf-8'))
         else:
             data = request.data
-        form = BookForm(data)
         user = get_user_from_request(request)
-        if form.is_valid():
-            title = form.data.get('title')
-            authors = form.data.get('authors')
-            existing_books = Book.objects.filter(title__contains=title, authors__contains=authors)
-            if existing_books:
-                book = existing_books[0]
-            else:
-                book = form.save()
-            book_item = BookItem.objects.create(book=book, owner=user)
-            image = request.data.get('image')
-            if image:
-                path = 'books/{}/{}.jpg'.format(user.id, book_item.id)
-                upload_file(path, image)
-                book_item.image = MEDIA_URL + path
-                book_item.save()
-            resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+        #todo: validation throuth forms
+        title = data['title']
+        authors = data['authors']
+        genre = 3 #data['genre']
+        existing_books = Book.objects.filter(title__contains=title, authors__contains=authors)
+        if existing_books:
+            book = existing_books[0]
         else:
-            resp = JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            book = Book.objects.create(title=title, authors=authors, genre=genre)
+        book_item = BookItem.objects.create(book=book, owner=user)
+        image = request.data['image']
+        if image:
+            path = 'books/{}/{}.jpg'.format(user.id, book_item.id)
+            upload_file(path, image)
+            book_item.image = MEDIA_URL + path
+            book_item.save()
+        serializer = self.get_serializer(book_item)
+        resp = Response(serializer.data)
+        resp['Access-Control-Allow-Origin'] = '*'
+        return resp
+        # else:
+        #     resp = JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
+        #     resp['Access-Control-Allow-Origin'] = '*'
+        #     return resp
 
 
 @permission_classes([IsAuthenticated])

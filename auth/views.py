@@ -60,9 +60,7 @@ class LoginView(generics.RetrieveAPIView):
             token = Token.objects.get_or_create(user=django_user)
             serializer = self.get_serializer(user)
             data = serializer.data
-            avatar_path_key = 'avatar/{}.jpg'.format(user.id)
-            if check_key_existing(avatar_path_key):
-                data['image'] = get_b64str_from_path(avatar_path_key)
+            data['image'] = user.avatar
             resp = JsonResponse({**{'token': token[0].key}, **data})
             resp['Access-Control-Allow-Origin'] = '*'
             return resp

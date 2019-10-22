@@ -38,7 +38,6 @@ class MeDetailView(generics.RetrieveAPIView):
         user = get_user_from_request(request)
         serializer = self.get_serializer(user)
         data = serializer.data
-        data['image'] = user.avatar
         resp = Response(data)
         resp['Access-Control-Allow-Origin'] = '*'
         return resp
@@ -50,6 +49,7 @@ class MeDetailView(generics.RetrieveAPIView):
             data = request.data
         user = get_user_from_request(request)
         form = UserForm(data)
+        # print(request.data)
         if form.is_valid():
             user.first_name = data.get('first_name')
             user.last_name = data.get('last_name')
@@ -61,7 +61,11 @@ class MeDetailView(generics.RetrieveAPIView):
                 upload_file(upload_path, user_avatar)
                 user.avatar = MEDIA_URL + upload_path
             user.save()
-            resp = Response()
+            serializer = self.get_serializer(user)
+            data = serializer.data
+            # print(user.first_name, user.location, user.contact)
+            # print(data)
+            resp = Response(data)
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
         else:

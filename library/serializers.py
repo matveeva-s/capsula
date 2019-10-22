@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from library.models import Book, BookItem, Swap
-from user.serializers import DjangoUserSerializer, UserShortSerializer, UserSerializer
+from user.serializers import DjangoUserSerializer, UserSerializerForBooksOwners, UserSerializer
 
 
 class BookSerializerList(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class BookSerializerDetail(serializers.ModelSerializer):
 
 
 class BookItemSerializerList(serializers.ModelSerializer):
-    owner = UserShortSerializer()
+    owner = UserSerializerForBooksOwners()
 
     class Meta:
         model = BookItem

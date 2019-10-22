@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('last_name', 'first_name', 'email', 'id', 'django_user', 'location', 'contact')
+        fields = ('last_name', 'first_name', 'id', 'django_user', 'location', 'contact', 'image')
 
 
 class UserShortSerializer(serializers.ModelSerializer):
@@ -23,3 +23,11 @@ class UserShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('last_name', 'first_name', 'django_user')
+
+
+class UserSerializerForBooksOwners(serializers.ModelSerializer):
+    django_user = DjangoUserSerializer()
+
+    class Meta:
+        model = User
+        fields = ('id', 'django_user')
