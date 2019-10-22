@@ -30,4 +30,4 @@ class UserSerializerForBooksOwners(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'django_user')
+        fields = ('id', 'django_user', 'avatar')
