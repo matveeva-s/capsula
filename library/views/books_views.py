@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+import django_filters.rest_framework
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -19,10 +20,19 @@ from capsula.settings.common import MEDIA_URL
 class BookListView(generics.RetrieveAPIView):
     serializer_class = BookSerializerList
     queryset = Book.objects.all()
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['title', 'authors']
 
     @complete_headers
     def get(self, request, *args, **kwargs):
-        books = Book.objects.all()
+        title = self.request.query_params.get('title', None)
+        if title is not None:
+            books = Book.objects.all().filter(title__contains=title)
+        else:
+            books = Book.objects.all()
+        authors = self.request.query_params.get('authors', None)
+        if authors is not None:
+            books = books.filter(authors__contains=authors)
         serializer = self.get_serializer(books, many=True)
         return Response(serializer.data)
 
