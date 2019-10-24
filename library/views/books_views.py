@@ -21,7 +21,7 @@ class BookListView(generics.RetrieveAPIView):
     serializer_class = BookSerializerList
     queryset = Book.objects.all()
     filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = ['title', 'authors']
+    filterset_fields = ['title', 'authors', 'genre']
 
     @complete_headers
     def get(self, request, *args, **kwargs):
@@ -33,6 +33,9 @@ class BookListView(generics.RetrieveAPIView):
         authors = self.request.query_params.get('authors', None)
         if authors is not None:
             books = books.filter(authors__contains=authors)
+        genre = self.request.query_params.get('genre', None)
+        if genre is not None:
+            books = books.filter(genre=genre)
         serializer = self.get_serializer(books, many=True)
         return Response(serializer.data)
 
