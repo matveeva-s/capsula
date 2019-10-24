@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.utils import json
 from rest_framework.permissions import IsAuthenticated
 
-from capsula.settings import MEDIA_URL
+from capsula.settings.common import MEDIA_URL
 from capsula.utils import upload_file, get_user_from_request, complete_headers
 from user.forms import UserForm
 from user.models import User

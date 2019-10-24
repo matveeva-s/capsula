@@ -1,4 +1,3 @@
-capsula/settings.py
 avatar/
 node_modules/
 .DS_Store
@@ -10,3 +9,5 @@ __pycache__
 __pycache__/
 build/
 git
+capsula/settings/development.py
+capsula/settings/production.py

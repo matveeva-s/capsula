@@ -12,7 +12,7 @@ from library.serializers import BookSerializerList, BookItemSerializerDetail, Bo
     BookItemSerializerList
 from library.forms import BookItemForm
 from capsula.utils import upload_file, get_user_from_request, delete_file, complete_headers
-from capsula.settings import MEDIA_URL
+from capsula.settings.common import MEDIA_URL
 
 
 @permission_classes([IsAuthenticated])
