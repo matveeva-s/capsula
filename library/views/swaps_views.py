@@ -44,6 +44,7 @@ class RequestsListView(generics.ListCreateAPIView):
             data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
             data['date'] = swap.created_at
             data['image'] = swap.book.image
+            data_reader.append(data)
         return JsonResponse({'owner': data_owner, 'reader': data_reader})
 
     @complete_headers
