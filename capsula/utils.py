@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from botocore.exceptions import ClientError
 
 from capsula.__init__ import s3_client
-from capsula import settings
+from capsula.settings import production as settings
 from user.models import User
 
 
