@@ -36,8 +36,17 @@ class BookListView(generics.RetrieveAPIView):
         genre = self.request.query_params.get('genre', None)
         if genre is not None:
             books = books.filter(genre=genre)
-        serializer = self.get_serializer(books, many=True)
-        return Response(serializer.data)
+        #serializer = self.get_serializer(books, many=True)
+        data = []
+        for book in books:
+            item = {}
+            item['title'] = book.title
+            item['authors'] = book.authors
+            item['genre'] = book.genre
+            item['id'] = book.id
+            item['image'] = BookItem.objects.filter(book=book)[0].image
+            data.append(item)
+        return Response(data)
 
 
 @permission_classes([IsAuthenticated])
