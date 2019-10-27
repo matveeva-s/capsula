@@ -47,12 +47,15 @@ class BookDetailView(generics.RetrieveAPIView):
 
     @complete_headers
     def get(self, request, *args, **kwargs):
+        user = get_user_from_request(request)
         book_id = self.kwargs['id']
         book = get_object_or_404(Book, pk=book_id)
         book_items = BookItem.objects.filter(book=book)
+        image = book_items[0].image
+        book_items = book_items.exclude(owner=user)
         serializer = self.get_serializer(book)
         serializer_items = BookItemSerializerList(book_items, many=True)
-        return Response({**serializer.data, **{'book_items': serializer_items.data}})
+        return Response({**serializer.data, **{'book_items': serializer_items.data, 'image': image}})
 
 
 @permission_classes([IsAuthenticated])
@@ -143,25 +146,21 @@ class BookItemsListView(generics.ListCreateAPIView):
         #todo: validation throuth forms
         title = data['title']
         authors = data['authors']
-        genre = 3 #data['genre']
+        genre = data['genre']
         existing_books = Book.objects.filter(title__contains=title, authors__contains=authors)
         if existing_books:
             book = existing_books[0]
         else:
             book = Book.objects.create(title=title, authors=authors, genre=genre)
         book_item = BookItem.objects.create(book=book, owner=user)
-        image = request.data['image']
-        if image:
+        if request.data['image']:
+            image = request.data['image']
             path = 'books/{}/{}.jpg'.format(user.id, book_item.id)
             upload_file(path, image)
             book_item.image = MEDIA_URL + path
             book_item.save()
         serializer = self.get_serializer(book_item)
         return Response(serializer.data)
-        # else:
-        #     resp = JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
-        #     resp['Access-Control-Allow-Origin'] = '*'
-        #     return resp
 
 
 @permission_classes([IsAuthenticated])
@@ -176,6 +175,4 @@ def get_other_user_books_list(request, id):
             book_data = serializer.data
             book_data['image'] = book.image
             data.append(book_data)
-        resp = JsonResponse({'data': data})
-        resp['Access-Control-Allow-Origin'] = '*'
-        return resp
+        return JsonResponse({'data': data})
