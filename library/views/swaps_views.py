@@ -26,22 +26,24 @@ class RequestsListView(generics.ListCreateAPIView):
         for swap in swaps_owner:
             data = {}
             data['id'] = swap.id
-            data['book'] = swap.book.book.title
+            data['book'] = {'title': swap.book.book.title, 'id': swap.book.book.id}
             data['authors'] = swap.book.book.authors
             data['genre'] = swap.book.book.genre
             data['status'] = swap.status
-            data['reader'] = '{} {}'.format(swap.reader.first_name, swap.reader.last_name)
+            data['reader'] = {'name': '{} {}'.format(swap.reader.first_name, swap.reader.last_name),
+                              'id': swap.reader.id}
             data['date'] = swap.created_at
             data['image'] = swap.book.image
             data_owner.append(data)
         for swap in swaps_reader:
             data = {}
             data['id'] = swap.id
-            data['book'] = swap.book.book.title
+            data['book'] = {'title': swap.book.book.title, 'id': swap.book.book.id}
             data['authors'] = swap.book.book.authors
             data['genre'] = swap.book.book.genre
             data['status'] = swap.status
-            data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
+            data['owner'] = {'name': '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name),
+                             'id': swap.book.owner.id}
             data['date'] = swap.created_at
             data['image'] = swap.book.image
             data_reader.append(data)
