@@ -37,7 +37,6 @@ class LoginView(generics.RetrieveAPIView):
         user = User.objects.get(django_user=auth_user)
         serializer = self.get_serializer(user)
         data = serializer.data
-        data['image'] = user.avatar
         return JsonResponse({**{'token': token[0].key}, **data})
 
     @complete_headers
@@ -59,7 +58,6 @@ class LoginView(generics.RetrieveAPIView):
             token = Token.objects.get_or_create(user=django_user)
             serializer = self.get_serializer(user)
             data = serializer.data
-            data['image'] = user.avatar
             return JsonResponse({**{'token': token[0].key}, **data})
 
 
