@@ -44,8 +44,7 @@ class BookListView(generics.RetrieveAPIView):
             item['authors'] = book.authors
             item['genre'] = book.genre
             item['id'] = book.id
-            item['image'] = BookItem.objects.filter(book=book)[0].image
-            data.append(item)
+            data.append({'book': item, 'image': BookItem.objects.filter(book=book)[0].image})
         return Response(data)
 
 
