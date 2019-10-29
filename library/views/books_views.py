@@ -16,7 +16,7 @@ from capsula.utils import upload_file, get_user_from_request, delete_file, compl
 from capsula.settings.common import MEDIA_URL
 
 
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 class BookListView(generics.RetrieveAPIView):
     serializer_class = BookSerializerList
     queryset = Book.objects.all()

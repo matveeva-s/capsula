@@ -31,7 +31,7 @@ class RequestsListView(generics.ListCreateAPIView):
             data['genre'] = swap.book.book.genre
             data['status'] = swap.status
             data['reader'] = {'name': '{} {}'.format(swap.reader.first_name, swap.reader.last_name),
-                              'id': swap.reader.id}
+                              'id': swap.reader.id, 'vk': swap.reader.contact, 'email': swap.reader.email}
             data['date'] = swap.created_at
             data['image'] = swap.book.image
             data_owner.append(data)
@@ -43,7 +43,7 @@ class RequestsListView(generics.ListCreateAPIView):
             data['genre'] = swap.book.book.genre
             data['status'] = swap.status
             data['owner'] = {'name': '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name),
-                             'id': swap.book.owner.id}
+                             'id': swap.book.owner.id, 'vk': swap.book.owner.contact, 'email': swap.book.owner.email}
             data['date'] = swap.created_at
             data['image'] = swap.book.image
             data_reader.append(data)
