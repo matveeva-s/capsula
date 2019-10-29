@@ -3,7 +3,6 @@ import re
 import io
 
 from rest_framework.authtoken.models import Token
-from botocore.exceptions import ClientError
 
 from capsula.__init__ import s3_client
 from capsula.settings import production as settings
@@ -16,7 +15,8 @@ def upload_file(path, b64file):
     s3_client.put_object(
         Bucket=settings.AWS_STORAGE_BUCKET_NAME,
         Key=path,
-        Body=image
+        Body=image,
+        ACL='public-read'
     )
 
 
