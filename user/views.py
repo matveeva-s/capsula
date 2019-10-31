@@ -27,7 +27,6 @@ class UserDetailView(generics.RetrieveAPIView):
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
-
 @permission_classes([IsAuthenticated])
 class MeDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
@@ -65,7 +64,6 @@ class MeDetailView(generics.RetrieveAPIView):
             return Response(data)
         else:
             return JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
-
 
 @permission_classes([IsAuthenticated])
 class UserListView(generics.RetrieveAPIView):
