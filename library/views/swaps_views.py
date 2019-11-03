@@ -112,6 +112,7 @@ class SwapDetailView(generics.ListCreateAPIView):
         elif swap.reader == user and swap.status == Swap.CONSIDERED: # поменять потом на CANCELED
             swap.status = data['status']
             swap.save()
+            return JsonResponse({})
         elif swap.book.owner == user and swap.status == Swap.READING and data['status'] == Swap.RETURNED:
             swap.status = data['status']
             swap.save()
