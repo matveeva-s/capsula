@@ -87,28 +87,27 @@ class BookItemsDetailView(generics.RetrieveAPIView):
         user = get_user_from_request(request)
         form = BookItemForm(data)
         book_id = self.kwargs['id']
-        book = get_object_or_404(BookItem, pk=book_id)
-        if book.owner != user:
+        book_item = get_object_or_404(BookItem, pk=book_id)
+        book = book_item.book
+        if book_item.owner != user:
             return JsonResponse({'detail': 'Пользователь может редактировать только свои книги'}, status=403)
         # How to validate every field?
         # How to change field on abstr book AND in book_item?
-        if form.is_valid():
-            if data.get('title'):
-                book.title = data.get('title')
-            if data.get('genre'):
-                book.genre = data.get('genre')
-            if data.get('authors'):
-                book.authors = data.get('authors')
-            if data.get('status'):
-                book.status = data.get('status')
-            if data.get('isbn'):
-                book.isbn = data.get('isbn')
-            if data.get('image'):
-                upload_file('books/{}/{}.jpg'.format(user.id, book.id), data.get('image'))
-            book.save()
-            return JsonResponse({})
-        else:
-            return JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
+        if data.get('title'):
+            book.title = data.get('title')
+        if data.get('genre'):
+            book.genre = data.get('genre')
+        if data.get('authors'):
+            book.authors = data.get('authors')
+        if data.get('status'):
+            book_item.status = data.get('status')
+        if data.get('isbn'):
+            book_item.isbn = data.get('isbn')
+        if data.get('image'):
+            upload_file('books/{}/{}.jpg'.format(user.id, book_item.id), data.get('image'))
+        book.save()
+        book_item.save()
+        return JsonResponse({})
 
     @complete_headers
     def delete(self, request, *args, **kwargs):

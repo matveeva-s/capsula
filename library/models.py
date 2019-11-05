@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
 from user.models import User
-from capsula import settings
 
 
 class Book(models.Model):
