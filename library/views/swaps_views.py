@@ -103,28 +103,28 @@ class SwapDetailView(generics.ListCreateAPIView):
         if swap.book.owner == user and swap.status == Swap.CONSIDERED:
             if data['status'] == Swap.REJECTED:
                 swap.status = data['status']
-                swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
+                swap.updated_at = timezone.localtime()
                 swap.save()
             elif data['status'] == Swap.ACCEPTED:
                 swap.book.status = BookItem.READING
                 swap.book.save()
                 swap.status = data['status']
-                swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
+                swap.updated_at = timezone.localtime()
                 swap.save()
             return JsonResponse({})
         elif swap.reader == user and swap.status == Swap.CONSIDERED: # поменять потом на CANCELED
             swap.status = data['status']
-            swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
+            swap.updated_at = timezone.localtime()
             swap.save()
             return JsonResponse({})
         elif swap.book.owner == user and swap.status == Swap.READING and data['status'] == Swap.RETURNED:
             swap.status = data['status']
-            swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
+            swap.updated_at = timezone.localtime()
             swap.save()
             return JsonResponse({})
         if swap.reader == user and swap.status == Swap.ACCEPTED and data['status'] == Swap.READING:
             swap.status = data['status']
-            swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
+            swap.updated_at = timezone.localtime()
             swap.save()
             return JsonResponse({})
         return JsonResponse({'detail': 'Изменение запрещено'}, status=403)
