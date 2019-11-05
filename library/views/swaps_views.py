@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -32,7 +33,7 @@ class RequestsListView(generics.ListCreateAPIView):
             data['status'] = swap.status
             data['reader'] = {'name': '{} {}'.format(swap.reader.first_name, swap.reader.last_name),
                               'id': swap.reader.id, 'vk': swap.reader.contact, 'email': swap.reader.email}
-            data['date'] = swap.created_at.strftime('%d.%m.%Y')
+            data['date'] = swap.updated_at.strftime('%d.%m.%Y')
             data['image'] = swap.book.image
             data_owner.append(data)
         for swap in swaps_reader:
@@ -44,7 +45,7 @@ class RequestsListView(generics.ListCreateAPIView):
             data['status'] = swap.status
             data['owner'] = {'name': '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name),
                              'id': swap.book.owner.id, 'vk': swap.book.owner.contact, 'email': swap.book.owner.email}
-            data['date'] = swap.created_at.strftime('%d.%m.%Y')
+            data['date'] = swap.updated_at.strftime('%d.%m.%Y')
             data['image'] = swap.book.image
             data_reader.append(data)
         return JsonResponse({'owner': data_owner, 'reader': data_reader})
@@ -86,7 +87,7 @@ class SwapDetailView(generics.ListCreateAPIView):
         data['authors'] = swap.book.book.authors
         data['genre'] = swap.book.book.genre
         data['owner'] = '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name)
-        data['date'] = swap.created_at.strftime('%d.%m.%Y')
+        data['date'] = swap.updated_at.strftime('%d.%m.%Y')
         data['image'] = swap.book.image
         return JsonResponse(data)
 
@@ -102,23 +103,28 @@ class SwapDetailView(generics.ListCreateAPIView):
         if swap.book.owner == user and swap.status == Swap.CONSIDERED:
             if data['status'] == Swap.REJECTED:
                 swap.status = data['status']
+                swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
                 swap.save()
             elif data['status'] == Swap.ACCEPTED:
                 swap.book.status = BookItem.READING
                 swap.book.save()
                 swap.status = data['status']
+                swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
                 swap.save()
             return JsonResponse({})
         elif swap.reader == user and swap.status == Swap.CONSIDERED: # поменять потом на CANCELED
             swap.status = data['status']
+            swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
             swap.save()
             return JsonResponse({})
         elif swap.book.owner == user and swap.status == Swap.READING and data['status'] == Swap.RETURNED:
             swap.status = data['status']
+            swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
             swap.save()
             return JsonResponse({})
         if swap.reader == user and swap.status == Swap.ACCEPTED and data['status'] == Swap.READING:
             swap.status = data['status']
+            swap.updated_at = timezone.localtime().strftime('%d.%m.%Y')
             swap.save()
             return JsonResponse({})
         return JsonResponse({'detail': 'Изменение запрещено'}, status=403)
