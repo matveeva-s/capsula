@@ -160,8 +160,8 @@ class BookItemsListView(generics.ListCreateAPIView):
         else:
             book = Book.objects.create(title=title, authors=authors, genre=genre)
         book_item = BookItem.objects.create(book=book, owner=user)
-        if request.data['image']:
-            image = request.data['image']
+        if data.get('image'):
+            image = data['image']
             path = 'books/{}/{}.jpg'.format(user.id, book_item.id)
             upload_file(path, image)
             book_item.image = MEDIA_URL + path
