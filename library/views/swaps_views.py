@@ -26,7 +26,7 @@ class RequestsListView(generics.ListCreateAPIView):
         for swap in swaps_owner:
             data = {}
             data['id'] = swap.id
-            data['book'] = {'title': swap.book.book.title, 'id': swap.book.book.id}
+            data['book'] = {'title': swap.book.book.title, 'id': swap.book.book.id, 'status': swap.book.status}
             data['authors'] = swap.book.book.authors
             data['genre'] = swap.book.book.genre
             data['status'] = swap.status
@@ -38,7 +38,7 @@ class RequestsListView(generics.ListCreateAPIView):
         for swap in swaps_reader:
             data = {}
             data['id'] = swap.id
-            data['book'] = {'title': swap.book.book.title, 'id': swap.book.book.id}
+            data['book'] = {'title': swap.book.book.title, 'id': swap.book.book.id, 'status': swap.book.status}
             data['authors'] = swap.book.book.authors
             data['genre'] = swap.book.book.genre
             data['status'] = swap.status
