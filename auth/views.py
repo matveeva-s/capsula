@@ -39,6 +39,13 @@ class LoginView(generics.RetrieveAPIView):
         data = serializer.data
         return JsonResponse({**{'token': token[0].key}, **data})
 
+    # 1. Создание oauth пользователя
+    # 2. Создание django пользователя
+    # 3. Попытка создать пользователя, если пользователь с такой почтой уже есть, то
+    # 4. Получаем другого пользователя django с такой почтой
+    # 5. Получаем для нового пользователя oauth
+    # 6. ПОдменяем oauth и удаляем django =)
+
     @complete_headers
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
@@ -47,12 +54,23 @@ class LoginView(generics.RetrieveAPIView):
             django_user = request.user
             user = User.objects.filter(django_user=django_user)
             if len(user) == 0:
-                vk_user = UserSocialAuth.objects.get(user=django_user)
-                user = User.objects.create(django_user=django_user,
-                                           first_name=django_user.first_name,
-                                           last_name=django_user.last_name,
-                                           email=django_user.email,
-                                           contact=vk_user.uid)
+                if len(User.objects.filter(email=django_user.email)) == 0:
+                    oauth_user = UserSocialAuth.objects.get(user=django_user)
+                    user = User.objects.create(django_user=django_user,
+                                               first_name=django_user.first_name,
+                                               last_name=django_user.last_name,
+                                               email=django_user.email,
+                                               contact=oauth_user.uid)
+                else:
+                    old_django_user = DjangoUser.objects.filter(email=django_user.email).exclude(owner=user)
+                    if len(old_django_user) == 1:
+                        old_django_user = old_django_user[0]
+                    else:
+                        return JsonResponse({'detail': 'Такой email не один в системе'}, status=409)
+                    oauth_user = UserSocialAuth.objects.get(user=django_user)
+                    oauth_user.user = old_django_user
+                    django_user.delete()
+
             else:
                 user = User.objects.get(django_user=django_user)
             token = Token.objects.get_or_create(user=django_user)
@@ -105,4 +123,3 @@ class RegistrationView(generics.RetrieveAPIView):
             if user_form.errors['email'][0] == 'User with this Email already exists.':
                 return JsonResponse({'msg': 'Адрес электронной почты уже используется'}, status=409)
             return JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
-
