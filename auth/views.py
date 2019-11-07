@@ -64,14 +64,12 @@ class LoginView(generics.RetrieveAPIView):
                 else:
                     old_django_user = DjangoUser.objects.filter(email=django_user.email).exclude(id=django_user.id)
                     if len(old_django_user) == 1:
-                        old_django_user = old_django_user[0]
+                        oauth_user = UserSocialAuth.objects.get(user=django_user)
+                        oauth_user.user = old_django_user[0]
+                        oauth_user.save()
+                        django_user.delete()
                     else:
                         return JsonResponse({'detail': 'Такой email не один в системе'}, status=409)
-                    oauth_user = UserSocialAuth.objects.get(user=django_user)
-                    oauth_user.user = old_django_user
-                    oauth_user.save()
-                    django_user.delete()
-
             else:
                 user = User.objects.get(django_user=django_user)
             token = Token.objects.get_or_create(user=django_user)
