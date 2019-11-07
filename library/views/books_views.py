@@ -63,7 +63,13 @@ class BookDetailView(generics.RetrieveAPIView):
         book_items = book_items.exclude(owner=user)
         serializer = self.get_serializer(book)
         serializer_items = BookItemSerializerList(book_items, many=True)
-        return Response({**serializer.data, **{'book_items': serializer_items.data, 'image': image}})
+        book_items_list = serializer_items.data
+        for book_item in book_items_list:
+            if book_item['owner']['location'] == user.location:
+                book_item['near'] = True
+            else:
+                book_item['near'] = False
+        return Response({**serializer.data, **{'book_items': book_items_list, 'image': image}})
 
 
 @permission_classes([IsAuthenticated])

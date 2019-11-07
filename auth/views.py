@@ -39,13 +39,6 @@ class LoginView(generics.RetrieveAPIView):
         data = serializer.data
         return JsonResponse({**{'token': token[0].key}, **data})
 
-    # 1. Создание oauth пользователя
-    # 2. Создание django пользователя
-    # 3. Попытка создать пользователя, если пользователь с такой почтой уже есть, то
-    # 4. Получаем другого пользователя django с такой почтой
-    # 5. Получаем для нового пользователя oauth
-    # 6. ПОдменяем oauth и удаляем django =)
-
     @complete_headers
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
