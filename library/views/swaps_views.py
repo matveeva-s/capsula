@@ -26,25 +26,33 @@ class RequestsListView(generics.ListCreateAPIView):
         # todo check times DB hitting and optimize with select_related
         for swap in swaps_owner:
             data = {}
+            if swap.reader.email.find('@false.ru') == -1:
+                email = swap.reader.email
+            else:
+                email = ''
             data['id'] = swap.id
             data['book'] = {'title': swap.book.book.title, 'id': swap.book.book.id, 'status': swap.book.status}
             data['authors'] = swap.book.book.authors
             data['genre'] = swap.book.book.genre
             data['status'] = swap.status
             data['reader'] = {'name': '{} {}'.format(swap.reader.first_name, swap.reader.last_name),
-                              'id': swap.reader.id, 'vk': swap.reader.contact, 'email': swap.reader.email}
+                              'id': swap.reader.id, 'vk': swap.reader.contact, 'email': email}
             data['date'] = swap.updated_at.strftime('%d.%m.%Y')
             data['image'] = swap.book.image
             data_owner.append(data)
         for swap in swaps_reader:
             data = {}
+            if swap.book.owner.email.find('@false.ru') == -1:
+                email = swap.book.owner.email
+            else:
+                email = ''
             data['id'] = swap.id
             data['book'] = {'title': swap.book.book.title, 'id': swap.book.book.id, 'status': swap.book.status}
             data['authors'] = swap.book.book.authors
             data['genre'] = swap.book.book.genre
             data['status'] = swap.status
             data['owner'] = {'name': '{} {}'.format(swap.book.owner.first_name, swap.book.owner.last_name),
-                             'id': swap.book.owner.id, 'vk': swap.book.owner.contact, 'email': swap.book.owner.email}
+                             'id': swap.book.owner.id, 'vk': swap.book.owner.contact, 'email': email}
             data['date'] = swap.updated_at.strftime('%d.%m.%Y')
             data['image'] = swap.book.image
             data_reader.append(data)
