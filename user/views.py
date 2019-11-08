@@ -23,7 +23,7 @@ class UserDetailView(generics.RetrieveAPIView):
     @complete_headers
     def get(self, request, *args, **kwargs):
         user_id = self.kwargs['pk']
-        user = User.objects.get(id=user_id)
+        user = get_object_or_404(User, id=user_id)
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
