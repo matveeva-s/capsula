@@ -60,6 +60,7 @@ class RequestsListView(generics.ListCreateAPIView):
         if bookitem.status == BookItem.AVAILABLE:
             user = get_user_from_request(request)
             Swap.objects.create(book=bookitem, reader=user, status=Swap.CONSIDERED)
+            bookitem.status = BookItem.READING
             resp = JsonResponse({})
             resp['Access-Control-Allow-Origin'] = '*'
             return resp
@@ -112,13 +113,15 @@ class SwapDetailView(generics.ListCreateAPIView):
                 swap.updated_at = timezone.localtime()
                 swap.save()
             return JsonResponse({})
-        elif swap.reader == user and swap.status == Swap.CONSIDERED: # поменять потом на CANCELED
+        elif swap.reader == user and swap.status == Swap.CONSIDERED and data['status'] == Swap.REJECTED: # поменять потом на CANCELED
             swap.status = data['status']
+            swap.book.status = BookItem.AVAILABLE
             swap.updated_at = timezone.localtime()
             swap.save()
             return JsonResponse({})
         elif swap.book.owner == user and swap.status == Swap.READING and data['status'] == Swap.RETURNED:
             swap.status = data['status']
+            swap.book.status = BookItem.AVAILABLE
             swap.updated_at = timezone.localtime()
             swap.save()
             return JsonResponse({})
