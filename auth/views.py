@@ -50,10 +50,14 @@ class LoginView(generics.RetrieveAPIView):
             if len(user) == 0:
                 if len(User.objects.filter(email=django_user.email)) == 0:
                     oauth_user = UserSocialAuth.objects.get(user=django_user)
+                    if django_user.email:
+                        email = django_user.email
+                    else:
+                        email = django_user.uid + '@false.ru'
                     user = User.objects.create(django_user=django_user,
                                                first_name=django_user.first_name,
                                                last_name=django_user.last_name,
-                                               email=django_user.email,
+                                               email=email,
                                                contact=oauth_user.uid)
                 else:
                     old_django_user = DjangoUser.objects.filter(email=django_user.email).exclude(id=django_user.id)
@@ -112,7 +116,7 @@ class RegistrationView(generics.RetrieveAPIView):
             return JsonResponse({})
         else:
             if DjangoUser.objects.filter(username=data['username']).exists():
-                return JsonResponse({'msg': 'Пользователь с таким именем уже существует'}, status=409)
+                return JsonResponse({'detail': 'Пользователь с таким именем уже существует'}, status=409)
             if user_form.errors['email'][0] == 'User with this Email already exists.':
-                return JsonResponse({'msg': 'Адрес электронной почты уже используется'}, status=409)
-            return JsonResponse({'msg': 'Ошибка создания, проверьте данные'}, status=400)
+                return JsonResponse({'detail': 'Адрес электронной почты уже используется'}, status=409)
+            return JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
