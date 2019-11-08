@@ -65,8 +65,6 @@ class LoginView(generics.RetrieveAPIView):
                             django_user.delete()
                         else:
                             return JsonResponse({'detail': 'Такой email не один в системе'}, status=409)
-                    else:
-                        user = User.objects.get(django_user=django_user)
             else:
                 user = User.objects.get(django_user=django_user)
             token = Token.objects.get_or_create(user=django_user)
