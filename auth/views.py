@@ -3,6 +3,7 @@ from builtins import KeyError
 from django.contrib.auth import logout
 from django.contrib.auth.models import User as DjangoUser
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import permission_classes
@@ -28,7 +29,7 @@ class LoginView(generics.RetrieveAPIView):
             data = request.data
         username = data['username']
         password = data['password']
-        auth_user = DjangoUser.objects.get(username=username)
+        auth_user = get_object_or_404(DjangoUser, username=username)
         if auth_user and auth_user.check_password(password):
             request.session['member_id'] = auth_user.username
         else:

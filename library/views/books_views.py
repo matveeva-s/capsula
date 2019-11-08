@@ -16,7 +16,6 @@ from capsula.utils import upload_file, get_user_from_request, delete_file, compl
 from capsula.settings.common import MEDIA_URL
 
 
-#@permission_classes([IsAuthenticated])
 class BookListView(generics.RetrieveAPIView):
     serializer_class = BookSerializerList
     queryset = Book.objects.all()
@@ -156,7 +155,7 @@ class BookItemsListView(generics.ListCreateAPIView):
         else:
             data = request.data
         user = get_user_from_request(request)
-        #todo: validation throuth forms
+        # todo: validation throuth forms
         title = data['title']
         authors = data['authors']
         genre = data['genre']

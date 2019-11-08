@@ -133,3 +133,18 @@ class Swap (models.Model):
 
     def __str__(self):
         return self.reader.first_name
+
+
+class Wishlist (models.Model):
+
+    user = models.ForeignKey(User, related_name='user', verbose_name='Пользователь', on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, verbose_name='Книга в вишлисте', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(verbose_name='Дата создания', default=timezone.localtime())
+
+    class Meta:
+        verbose_name = 'Вишлист'
+        verbose_name_plural = 'Вишлист'
+        ordering = ('pk',)
+
+    def __str__(self):
+        return self.user.first_name

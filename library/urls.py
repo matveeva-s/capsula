@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from library.views import books_views, swaps_views
+from library.views import books_views, swaps_views, wishlist_views
 
 urlpatterns = [
     url(r'^(books/)$', books_views.BookListView.as_view(), name='books_lists'),
@@ -11,4 +11,6 @@ urlpatterns = [
     url(r'^(swaps/)$', swaps_views.RequestsListView.as_view(), name='swaps_lists'),
     url(r'^(swaps)/(?P<id>\d+)/$', swaps_views.SwapDetailView.as_view(), name='swaps_detail'),
 
+    url(r'^(wishlist/)$', wishlist_views.WishlistView.as_view(), name='wishlist'),
+    url(r'^(wishlist)/(?P<id>\d+)/$', wishlist_views.WishlistDetailView.as_view(), name='wishlist_detail'),
 ]
