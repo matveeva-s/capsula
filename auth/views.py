@@ -50,24 +50,21 @@ class LoginView(generics.RetrieveAPIView):
             if len(user) == 0:
                 if len(User.objects.filter(email=django_user.email)) == 0:
                     oauth_user = UserSocialAuth.objects.get(user=django_user)
-                    if django_user.email != '':
-                        email = django_user.email
-                    else:
-                        email = django_user.uid + '@false.ru'
                     user = User.objects.create(django_user=django_user,
                                                first_name=django_user.first_name,
                                                last_name=django_user.last_name,
-                                               email=email,
+                                               email=django_user.email,
                                                contact=oauth_user.uid)
                 else:
-                    old_django_user = DjangoUser.objects.filter(email=django_user.email).exclude(id=django_user.id)
-                    if len(old_django_user) == 1:
-                        oauth_user = UserSocialAuth.objects.get(user=django_user)
-                        oauth_user.user = old_django_user[0]
-                        oauth_user.save()
-                        django_user.delete()
-                    else:
-                        return JsonResponse({'detail': 'Такой email не один в системе'}, status=409)
+                    if django_user.email != '':
+                        old_django_user = DjangoUser.objects.filter(email=django_user.email).exclude(id=django_user.id)
+                        if len(old_django_user) == 1:
+                            oauth_user = UserSocialAuth.objects.get(user=django_user)
+                            oauth_user.user = old_django_user[0]
+                            oauth_user.save()
+                            django_user.delete()
+                        else:
+                            return JsonResponse({'detail': 'Такой email не один в системе'}, status=409)
             else:
                 user = User.objects.get(django_user=django_user)
             token = Token.objects.get_or_create(user=django_user)
