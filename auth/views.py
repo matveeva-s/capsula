@@ -56,6 +56,7 @@ class LoginView(generics.RetrieveAPIView):
                                                email=django_user.email,
                                                contact=oauth_user.uid)
                 else:
+                    django_user = request.user
                     if django_user.email != '':
                         old_django_user = DjangoUser.objects.filter(email=django_user.email).exclude(id=django_user.id)
                         if len(old_django_user) == 1:
