@@ -33,7 +33,7 @@ class LoginView(generics.RetrieveAPIView):
         if auth_user and auth_user.check_password(password):
             request.session['member_id'] = auth_user.username
         else:
-            return JsonResponse({'msg': 'Ошибка входа (проверьте логин и пароль)'}, status=401)
+            return JsonResponse({'detail': 'Ошибка входа (проверьте логин и пароль)'}, status=401)
         token = Token.objects.get_or_create(user=auth_user)
         user = User.objects.get(django_user=auth_user)
         serializer = self.get_serializer(user)

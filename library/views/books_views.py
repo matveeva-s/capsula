@@ -110,6 +110,7 @@ class BookItemsDetailView(generics.RetrieveAPIView):
             book_item.isbn = data.get('isbn')
         if data.get('image'):
             upload_file('books/{}/{}.jpg'.format(user.id, book_item.id), data.get('image'))
+            book_item.image = MEDIA_URL + 'books/{}/{}.jpg'.format(user.id, book_item.id)
         book.save()
         book_item.save()
         return JsonResponse({})
