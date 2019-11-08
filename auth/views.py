@@ -50,7 +50,7 @@ class LoginView(generics.RetrieveAPIView):
             if len(user) == 0:
                 if len(User.objects.filter(email=django_user.email)) == 0:
                     oauth_user = UserSocialAuth.objects.get(user=django_user)
-                    if django_user.email:
+                    if django_user.email != '':
                         email = django_user.email
                     else:
                         email = django_user.uid + '@false.ru'
