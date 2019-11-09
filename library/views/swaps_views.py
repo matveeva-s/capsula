@@ -113,6 +113,8 @@ class SwapDetailView(generics.ListCreateAPIView):
                 swap.status = data['status']
                 swap.updated_at = timezone.localtime()
                 swap.save()
+                swap.book.status = BookItem.AVAILABLE
+                swap.book.save()
             elif data['status'] == Swap.ACCEPTED:
                 swap.book.status = BookItem.READING
                 swap.book.save()
