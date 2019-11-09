@@ -28,7 +28,10 @@ class WishlistView(generics.RetrieveAPIView):
             data['image'] = image
             data['created_at'] = wish.created_at.strftime('%d.%m.%Y')
             data['id'] = wish.id
-
+            if len(BookItem.objects.filter(book=wish.book, status=BookItem.AVAILABLE)) != 0:
+                data['available'] = True
+            else:
+                data['available'] = False
             data_list.append(data)
         return Response(data_list)
 
@@ -43,7 +46,7 @@ class WishlistView(generics.RetrieveAPIView):
         if len(Wishlist.objects.filter(user=user, book=book)) == 0:
             Wishlist.objects.create(user=user, book=book)
         else:
-            return JsonResponse({'detail': 'Книга уже есть в вашем вишлитсе'}, status=409)
+            return JsonResponse({'detail': 'Книга уже есть в вашем вишлисте'}, status=409)
         id = Wishlist.objects.get(user=user, book=book).id
         return JsonResponse({'id': id}, status=200)
 
