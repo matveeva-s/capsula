@@ -48,9 +48,3 @@ class SwapSerializerDetail(serializers.ModelSerializer):
         fields = ('book', 'reader', 'status', 'id')
 
 
-class WishlistSerializerList(serializers.ModelSerializer):
-    book = BookSerializerList()
-
-    class Meta:
-        model = Wishlist
-        fields = ('book', 'created_at', 'id')

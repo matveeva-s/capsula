@@ -70,10 +70,7 @@ class LoginView(generics.RetrieveAPIView):
                         user = User.objects.create(django_user=django_user,
                                                    first_name=django_user.first_name,
                                                    last_name=django_user.last_name,
-                                                   email= oauth_user.uid
-
-
-                                                          + '@false.ru',
+                                                   email= oauth_user.uid + '@false.ru',
                                                    contact=oauth_user.uid)
             else:
                 user = User.objects.get(django_user=django_user)

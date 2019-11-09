@@ -70,9 +70,7 @@ class RequestsListView(generics.ListCreateAPIView):
             Swap.objects.create(book=bookitem, reader=user, status=Swap.CONSIDERED)
             bookitem.status = BookItem.READING
             bookitem.save()
-            resp = JsonResponse({})
-            resp['Access-Control-Allow-Origin'] = '*'
-            return resp
+            return JsonResponse({})
         elif bookitem.status == BookItem.NOT_AVAILABLE:
             return JsonResponse({'detail': 'Книга недоступна'}, status=403)
         else:

@@ -15,19 +15,22 @@ class WishlistView(generics.RetrieveAPIView):
 
     @complete_headers
     def get(self, request, *args, **kwargs):
-       pass
-        # user = get_user_from_request(request)
-        # wishlist = Wishlist.objects.filter(user=user)
-        # for wish in wishlist:
-        #     data = {}
-        #     serializer = self.get_serializer(wish.book)
-        #     book = serializer.data
-        #     data['book'] =
-        #     book_items = BookItem.objects.filter(book=book['book']['id'])
-        #     image = book_items[0].image
-        #     book['image']= image
-        #     book['created_at'] = book['created_at'].strftime('%d.%m.%Y')
-        # return Response(book_list)
+        user = get_user_from_request(request)
+        wishlist = Wishlist.objects.filter(user=user)
+        data_list = []
+        for wish in wishlist:
+            data = {}
+            serializer = self.get_serializer(wish.book)
+            book = serializer.data
+            data['book'] = book
+            book_items = BookItem.objects.filter(book=wish.book)
+            image = book_items[0].image
+            data['image'] = image
+            data['created_at'] = wish.created_at.strftime('%d.%m.%Y')
+            data['id'] = wish.id
+
+            data_list.append(data)
+        return Response(data_list)
 
     @complete_headers
     def post(self, request, *args, **kwargs):
@@ -36,9 +39,13 @@ class WishlistView(generics.RetrieveAPIView):
         else:
             data = request.data
         user = get_user_from_request(request)
-        book = Book.objects.get(id=data['id'])
-        Wishlist.objects.create(user=user, book=book)
-        return JsonResponse({})
+        book = get_object_or_404(Book, id=data['id'])
+        if len(Wishlist.objects.filter(user=user, book=book)) == 0:
+            Wishlist.objects.create(user=user, book=book)
+        else:
+            return JsonResponse({'detail': 'Книга уже есть в вашем вишлитсе'}, status=409)
+        id = Wishlist.objects.get(user=user, book=book).id
+        return JsonResponse({'id': id}, status=200)
 
 
 class WishlistDetailView(generics.RetrieveAPIView):
