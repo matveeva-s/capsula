@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.utils import json
 
 from user.models import User
-from library.models import Book, BookItem
+from library.models import Book, BookItem, Wishlist
 from library.serializers import BookSerializerList, BookItemSerializerDetail, BookSerializerDetail, \
     BookItemSerializerList
 from library.forms import BookItemForm
@@ -68,7 +68,11 @@ class BookDetailView(generics.RetrieveAPIView):
                 book_item['near'] = True
             else:
                 book_item['near'] = False
-        return Response({**serializer.data, **{'book_items': book_items_list, 'image': image}})
+        if len(Wishlist.objects.filter(book=book)) == 0:
+            wishlist = False
+        else:
+            wishlist = True
+        return Response({**serializer.data,**{'wishlist': wishlist}, **{'book_items': book_items_list, 'image': image}})
 
 
 @permission_classes([IsAuthenticated])
