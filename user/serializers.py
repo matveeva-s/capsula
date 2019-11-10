@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('last_name', 'first_name', 'id', 'django_user', 'location', 'contact', 'avatar')
+        fields = ('last_name', 'first_name', 'id', 'django_user', 'location', 'contact', 'avatar', 'books_taken', 'books_given')
 
 
 class UserShortSerializer(serializers.ModelSerializer):

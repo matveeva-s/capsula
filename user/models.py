@@ -34,6 +34,7 @@ class User(models.Model):
 
     books_taken = models.IntegerField('Книг взято', default=0)
     books_given = models.IntegerField('Книг отдано', default=0)
+
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'

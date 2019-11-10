@@ -41,7 +41,7 @@ class BookListView(generics.RetrieveAPIView):
         if pages:
             pages = pages.split(',')
             for page in pages:
-                current_page = Paginator(books, 3)
+                current_page = Paginator(books, 30)
                 try:
                     context = current_page.page(page)
                 except PageNotAnInteger:
