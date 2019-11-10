@@ -68,10 +68,10 @@ class BookDetailView(generics.RetrieveAPIView):
                 book_item['near'] = True
             else:
                 book_item['near'] = False
-        if len(Wishlist.objects.filter(book=book)) == 0:
-            wishlist = False
+        if len(Wishlist.objects.filter(book=book, user=user)) == 0:
+            wishlist = {'added': False, 'id': None}
         else:
-            wishlist = True
+            wishlist = {'added': True, 'id': Wishlist.objects.get(book=book, user=user).id}
         return Response({**serializer.data,**{'wishlist': wishlist}, **{'book_items': book_items_list, 'image': image}})
 
 
