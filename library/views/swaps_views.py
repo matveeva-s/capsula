@@ -135,6 +135,10 @@ class SwapDetailView(generics.ListCreateAPIView):
             swap.book.save()
             swap.updated_at = timezone.localtime()
             swap.save()
+            swap.book.owner.books_given = swap.book.owner.books_given + 1
+            swap.book.owner.save()
+            swap.reader.books_taken = swap.reader.books_taken + 1
+            swap.reader.save()
             return JsonResponse({})
         if swap.reader == user and swap.status == Swap.ACCEPTED and data['status'] == Swap.READING:
             swap.status = data['status']

@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 
 from capsula.__init__ import s3_client
 from capsula.settings import production as settings
+from library.models import BookItem
 from user.models import User
 
 
@@ -46,3 +47,13 @@ def complete_headers(view_func):
         return response
     return wrapped_view
 
+def get_books(books):
+    data = []
+    for book in books:
+        item = {}
+        item['title'] = book.title
+        item['authors'] = book.authors
+        item['genre'] = book.genre
+        item['id'] = book.id
+        data.append({'book': item, 'image': BookItem.objects.filter(book=book)[0].image})
+    return data
