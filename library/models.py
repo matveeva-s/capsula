@@ -28,6 +28,8 @@ class Book(models.Model):
     PEREODIC = 21
     NOVEL = 22
     SCIENCE_FICTION = 23
+    STORY = 24
+
 
     ABSTRACT_BOOK_GENRES = (
         (CLASSIC_RUSSIAN, 'Классическая русская литература'),
@@ -54,6 +56,7 @@ class Book(models.Model):
         (PEREODIC, 'Периодические издания, газеты и журналы'),
         (NOVEL, 'Роман'),
         (SCIENCE_FICTION, 'Научная фантастика'),
+        (STORY, 'Повесть'),
     )
 
     title = models.CharField(verbose_name='Название', max_length=255)
