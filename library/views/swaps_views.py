@@ -6,9 +6,11 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.utils import json
 
+from library.tasks import add_swap
 from library.models import Swap, BookItem
 from library.serializers import SwapSerializerList, SwapSerializerDetail
 from capsula.utils import get_user_from_request, complete_headers
+
 
 
 @permission_classes([IsAuthenticated])
@@ -70,6 +72,10 @@ class RequestsListView(generics.ListCreateAPIView):
             Swap.objects.create(book=bookitem, reader=user, status=Swap.CONSIDERED)
             bookitem.status = BookItem.READING
             bookitem.save()
+
+            #task = add_swap.delay("HI")
+            #print(task.get())
+
             return JsonResponse({})
         elif bookitem.status == BookItem.NOT_AVAILABLE:
             return JsonResponse({'detail': 'Книга недоступна'}, status=403)
@@ -122,7 +128,7 @@ class SwapDetailView(generics.ListCreateAPIView):
                 swap.updated_at = timezone.localtime()
                 swap.save()
             return JsonResponse({})
-        elif swap.reader == user and swap.status == Swap.CONSIDERED and data['status'] == Swap.REJECTED: # поменять потом на CANCELED
+        elif swap.reader == user and swap.status == Swap.CONSIDERED and data['status'] == Swap.CANCELED:
             swap.status = data['status']
             swap.book.status = BookItem.AVAILABLE
             swap.book.save()

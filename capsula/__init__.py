@@ -2,6 +2,7 @@ import os
 
 import boto3
 from capsula.settings import production, development
+from .celery import app as celery_app
 
 #todo fix
 if os.environ['DJANGO_SETTINGS_MODULE'] == 'capsula.settings.production':
@@ -24,3 +25,4 @@ else:
         aws_access_key_id=development.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=development.AWS_SECRET_ACCESS_KEY
     )
+__all__ = ('celery_app',)

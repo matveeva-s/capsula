@@ -118,6 +118,7 @@ class Swap (models.Model):
     REJECTED = 2
     READING = 3
     RETURNED = 4
+    CANCELED = 5
 
     SWAP_STATUSES = (
         (CONSIDERED, 'Заявка рассматривается'),
@@ -125,6 +126,7 @@ class Swap (models.Model):
         (REJECTED, 'Заявка отклонена'),
         (READING, 'Книга читается'),
         (RETURNED, 'Книга возвращена'),
+        (CANCELED, 'Завяка отменена')
     )
 
     reader = models.ForeignKey(User, related_name='reader', verbose_name='Читатель', on_delete=models.CASCADE)
