@@ -77,13 +77,14 @@ class BookDetailView(generics.RetrieveAPIView):
                 book_item['near'] = True
             else:
                 book_item['near'] = False
-            if len(GeoPoint.objects.filter(user=user)) != 0 and len(GeoPoint.objects.filter(user=book_item['owner'])):
+            if len(GeoPoint.objects.filter(user=user)) != 0 and len(GeoPoint.objects.filter(user=book_item['owner']['id'])):
                 book_item['distance'] = haversine(GeoPoint.objects.filter(user=user)[0].longitude,
                                                   GeoPoint.objects.filter(user=user)[0].latitude,
-                                                  GeoPoint.objects.filter(user=book_item['owner'])[0].longitude,
-                                                  GeoPoint.objects.filter(user=book_item['owner'])[0].latitude
+                                                  GeoPoint.objects.filter(user=book_item['owner']['id'])[0].longitude,
+                                                  GeoPoint.objects.filter(user=book_item['owner']['id'])[0].latitude
                                                   )
-
+            else:
+                book_item['distance'] = 'Неизвестно'
 
         if len(Wishlist.objects.filter(book=book, user=user)) == 0:
             wishlist = {'added': False, 'id': None}
