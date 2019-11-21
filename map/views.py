@@ -21,7 +21,8 @@ class GeoPointsListView(generics.RetrieveAPIView):
         user = get_user_from_request(request)
         points = GeoPoint.objects.filter(user=user)
         if len(points) == 0:
-            return JsonResponse({'detail': 'Точки не найдены'}, status=404)
+            data = []
+            return Response(data)
         else:
             serializer = self.get_serializer(points, many=True)
             data = serializer.data

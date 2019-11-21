@@ -72,10 +72,9 @@ class RequestsListView(generics.ListCreateAPIView):
             Swap.objects.create(book=bookitem, reader=user, status=Swap.CONSIDERED)
             bookitem.status = BookItem.READING
             bookitem.save()
-
-            task = add_swap.delay("HI")
-            print(f"id={task.id}, state={task.state}, status={task.status}")
-            task.get()
+            if bookitem.owner.email.find('@false.ru') == -1:
+                task = add_swap.delay(bookitem.owner.email)
+                task.get()
 
             return JsonResponse({})
         elif bookitem.status == BookItem.NOT_AVAILABLE:
@@ -128,6 +127,9 @@ class SwapDetailView(generics.ListCreateAPIView):
                 swap.status = data['status']
                 swap.updated_at = timezone.localtime()
                 swap.save()
+                if swap.reader.email.find('@false.ru') == -1:
+                    task = add_swap.delay(swap.reader.email)
+                    task.get()
             return JsonResponse({})
         elif swap.reader == user and swap.status == Swap.CONSIDERED and data['status'] == Swap.CANCELED:
             swap.status = data['status']
