@@ -48,7 +48,6 @@ class MeDetailView(generics.RetrieveAPIView):
             data = request.data
         user = get_user_from_request(request)
         form = UserForm(data)
-        # print(request.data)
         if form.is_valid():
             user.first_name = data.get('first_name')
             user.last_name = data.get('last_name')
