@@ -8,12 +8,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.utils import json
 
+from map.models import GeoPoint
 from user.models import User
 from library.models import Book, BookItem, Wishlist
 from library.serializers import BookSerializerList, BookItemSerializerDetail, BookSerializerDetail, \
     BookItemSerializerList
 from library.forms import BookItemForm
-from capsula.utils import upload_file, get_user_from_request, delete_file, complete_headers, get_books
+from capsula.utils import upload_file, get_user_from_request, delete_file, complete_headers, get_books, haversine
 from capsula.settings.common import MEDIA_URL
 
 
@@ -72,10 +73,18 @@ class BookDetailView(generics.RetrieveAPIView):
         serializer_items = BookItemSerializerList(book_items, many=True)
         book_items_list = serializer_items.data
         for book_item in book_items_list:
-            if book_item['owner']['location'] == user.location:
+            if book_item['owner']['location'] == user.location: # todo удалить это
                 book_item['near'] = True
             else:
                 book_item['near'] = False
+            if len(GeoPoint.objects.filter(user=user)) != 0 and len(GeoPoint.objects.filter(user=book_item['owner'])):
+                book_item['distance'] = haversine(GeoPoint.objects.filter(user=user)[0].longitude,
+                                                  GeoPoint.objects.filter(user=user)[0].latitude,
+                                                  GeoPoint.objects.filter(user=book_item['owner'])[0].longitude,
+                                                  GeoPoint.objects.filter(user=book_item['owner'])[0].latitude
+                                                  )
+
+
         if len(Wishlist.objects.filter(book=book, user=user)) == 0:
             wishlist = {'added': False, 'id': None}
         else:
