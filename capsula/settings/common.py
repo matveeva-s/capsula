@@ -39,10 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'user.apps.UserConfig',
     'library.apps.LibraryConfig',
+    'map.apps.MapConfig',
     'rest_framework',
     'corsheaders',
     'storages',
     'social_django',
+    'djcelery_email'
 ]
 
 MIDDLEWARE = [

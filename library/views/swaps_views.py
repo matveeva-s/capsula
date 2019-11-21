@@ -73,8 +73,9 @@ class RequestsListView(generics.ListCreateAPIView):
             bookitem.status = BookItem.READING
             bookitem.save()
 
-            #task = add_swap.delay("HI")
-            #print(task.get())
+            task = add_swap.delay("HI")
+            print(f"id={task.id}, state={task.state}, status={task.status}")
+            task.get()
 
             return JsonResponse({})
         elif bookitem.status == BookItem.NOT_AVAILABLE:
