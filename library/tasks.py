@@ -13,9 +13,19 @@ def add_swap(email):
     send_mail(subject, message, email_from, recipient_list)
     return email
 
+
 def confirm_swap(email):
     subject = 'Заявка подтверждена'
     message = ' Заявка была одобрена. \n Заходи на сайт и узнай контактные данные владельца книги \n https://www.bookovsky.ru/reader '
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [email, ]
+    send_mail(subject, message, email_from, recipient_list)
+    return email
+
+
+def reject_swap(email):
+    subject = 'Заявка отклонена'
+    message = ' Заявка была отклонена. \n Заходи на сайт и возможно ты найдешь еще что-то интересное \n https://www.bookovsky.ru '
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email, ]
     send_mail(subject, message, email_from, recipient_list)

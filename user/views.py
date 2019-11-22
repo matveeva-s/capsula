@@ -13,6 +13,10 @@ from user.forms import UserForm
 from user.models import User
 from user.serializers import UserSerializer
 
+
+from django.contrib.auth.models import User as DjangoUser
+
+
 #todo шифровать пароль при регистрации и входе
 # https://habr.com/ru/post/120380/ статья по безопасной передаче логина-пароля с фронта на бэк
 @permission_classes([IsAuthenticated])

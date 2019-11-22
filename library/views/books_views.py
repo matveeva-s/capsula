@@ -72,9 +72,14 @@ class BookDetailView(generics.RetrieveAPIView):
         serializer = self.get_serializer(book)
         serializer_items = BookItemSerializerList(book_items, many=True)
         book_items_list = serializer_items.data
-
-        longitude = float(request.GET.get('longitude')) #todo  проверка
-        latitude = float(request.GET.get('latitude'))
+        if request.GET.get('longitude'):
+            longitude = float(request.GET.get('longitude')) #todo  проверка
+        else:
+            longitude = None
+        if request.GET.get('latitude'):
+            latitude = float(request.GET.get('latitude'))
+        else:
+            latitude = None
         if latitude and longitude:
             geo = True
         else:
