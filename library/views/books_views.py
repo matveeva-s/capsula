@@ -72,14 +72,20 @@ class BookDetailView(generics.RetrieveAPIView):
         serializer = self.get_serializer(book)
         serializer_items = BookItemSerializerList(book_items, many=True)
         book_items_list = serializer_items.data
+
+        longitude = float(request.GET.get('longitude')) #todo  проверка
+        latitude = float(request.GET.get('latitude'))
+        if latitude and longitude:
+            geo = True
+        else:
+            geo = False
         for book_item in book_items_list:
             if book_item['owner']['location'] == user.location: # todo удалить это
                 book_item['near'] = True
             else:
-                book_item['near'] = False
-            if len(GeoPoint.objects.filter(user=user)) != 0 and len(GeoPoint.objects.filter(user=book_item['owner']['id'])):
-                distance = haversine(GeoPoint.objects.filter(user=user)[0].longitude,
-                                                  GeoPoint.objects.filter(user=user)[0].latitude,
+                book_item['near'] = False #todo distance по всем точкам
+            if  geo and len(GeoPoint.objects.filter(user=book_item['owner']['id'])):
+                distance = haversine(longitude, latitude,
                                                   GeoPoint.objects.filter(user=book_item['owner']['id'])[0].longitude,
                                                   GeoPoint.objects.filter(user=book_item['owner']['id'])[0].latitude
                                                   )
