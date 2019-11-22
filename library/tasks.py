@@ -14,6 +14,7 @@ def add_swap(email):
     return email
 
 
+@shared_task
 def confirm_swap(email):
     subject = 'Заявка подтверждена'
     message = ' Заявка была одобрена. \n Заходи на сайт и узнай контактные данные владельца книги \n https://www.bookovsky.ru/reader '
@@ -23,6 +24,7 @@ def confirm_swap(email):
     return email
 
 
+@shared_task
 def reject_swap(email):
     subject = 'Заявка отклонена'
     message = ' Заявка была отклонена. \n Заходи на сайт и возможно ты найдешь еще что-то интересное \n https://www.bookovsky.ru '
