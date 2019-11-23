@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -80,23 +82,25 @@ class BookDetailView(generics.RetrieveAPIView):
             latitude = float(request.GET.get('latitude'))
         else:
             latitude = None
-        if latitude and longitude:
+        if latitude is not None and longitude is not None:
             geo = True
         else:
             geo = False
         for book_item in book_items_list:
-            if book_item['owner']['location'] == user.location: # todo удалить это
-                book_item['near'] = True
-            else:
-                book_item['near'] = False #todo distance по всем точкам
-            if  geo and len(GeoPoint.objects.filter(user=book_item['owner']['id'])):
-                distance = haversine(longitude, latitude,
-                                                  GeoPoint.objects.filter(user=book_item['owner']['id'])[0].longitude,
-                                                  GeoPoint.objects.filter(user=book_item['owner']['id'])[0].latitude
-                                                  )
-                book_item['point'] = {'distance': distance,
-                                      'longitude': GeoPoint.objects.filter(user=book_item['owner']['id'])[0].longitude,
-                                      'latitude': GeoPoint.objects.filter(user=book_item['owner']['id'])[0].latitude}
+            geo_points = GeoPoint.objects.filter(user=book_item['owner']['id'])
+            if len(geo_points):
+                points = []
+                for p in geo_points:
+                    if geo:
+                        distance = haversine(longitude, latitude, p.longitude, p.latitude)
+                    else:
+                        distance = None
+                    points.append({'distance': distance, 'longitude': p.longitude, 'latitude': p.latitude})
+                if geo:
+                    points.sort(key=lambda x: x['distance'])
+                    book_item['point'] = points[0]
+                else:
+                    book_item['point'] = points
                 book_item['geolocationNotNull'] = True
             else:
                 book_item['geolocationNotNull'] = False
