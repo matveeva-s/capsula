@@ -2,6 +2,8 @@ from django.contrib.auth.models import User as DjangoUser
 from django.core.files.storage import FileSystemStorage
 from django.db import models
 
+from capsula import settings
+
 
 class OverwriteStorage(FileSystemStorage):
     """This class controls that new file upload with same name will overwrite old file"""
@@ -50,3 +52,11 @@ class UserSubscription(models.Model):
     email_notification = models.BooleanField('Почтовые уведомления', default=True)
     email_news = models.BooleanField('Почтовая рассылка', default=True)
     vk_notification = models.BooleanField('ВК уведомления', default=True)
+
+    class Meta:
+        verbose_name = 'Рассылки пользователей'
+        verbose_name_plural = 'Рассылки'
+        ordering = ('pk',)
+
+    def __str__(self):
+        return self.user.first_name

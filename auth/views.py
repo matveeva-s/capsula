@@ -13,7 +13,7 @@ from social_django.models import UserSocialAuth
 
 from auth.forms import UserAuthForm, DjangoUserAuthForm
 from capsula.utils import complete_headers
-from user.models import User
+from user.models import User, UserSubscription
 from user.serializers import UserSerializer
 
 
@@ -55,6 +55,7 @@ class LoginView(generics.RetrieveAPIView):
                                                last_name=django_user.last_name,
                                                email=django_user.email,
                                                contact=oauth_user.uid)
+                    UserSubscription.objects.create(user=user)
                 else:
                     if django_user.email:
                         old_django_user = DjangoUser.objects.filter(email=django_user.email).exclude(id=django_user.id)
@@ -72,6 +73,7 @@ class LoginView(generics.RetrieveAPIView):
                                                    last_name=django_user.last_name,
                                                    email= oauth_user.uid + '@false.ru',
                                                    contact=oauth_user.uid)
+                        UserSubscription.objects.create(user=user)
             else:
                 user = User.objects.get(django_user=django_user)
             token = Token.objects.get_or_create(user=django_user)
@@ -117,6 +119,7 @@ class RegistrationView(generics.RetrieveAPIView):
             user = user_form.save()
             user.django_user = django_user
             user.save()
+            UserSubscription.objects.create(user=user)
             return JsonResponse({})
         else:
             if DjangoUser.objects.filter(username=data['username']).exists():

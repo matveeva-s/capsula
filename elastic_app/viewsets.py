@@ -1,11 +1,15 @@
 from elastic_app.documents import BookDocument
-from django.shortcuts import render
+from rest_framework.response import Response
 from elasticsearch_dsl.query import Q
 from django.utils.functional import LazyObject
-from django.http import JsonResponse, Http404
+from django.http import Http404, JsonResponse
 from elasticsearch import TransportError
-from django.core.paginator import Paginator, Page, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .serializers import book_search_serializer
+from rest_framework.decorators import api_view
 
+
+@api_view(('GET',))
 def book_search(request):
     q = request.GET.get('q')
     paginate_by = 3
@@ -18,7 +22,6 @@ def book_search(request):
         search_results = SearchResults(search)
         paginator = Paginator(search_results, paginate_by)
         page_number = request.GET.get("page")
-        # print('BOOKS: ', search)
         try:
             try:
                 page = paginator.page(page_number)
@@ -28,13 +31,9 @@ def book_search(request):
                 page = paginator.page(paginator.num_pages)
         except TransportError:
             raise Http404('Index does not exist. Run `python manage.py search_index --rebuild` to create it.')
-
-    # return render(request, 'search.html', {'books': page})
-    # print(list(page))
-    return JsonResponse({
-        'book': {'title': 'someTitle', 'authors': 'someAuthor', 'genre': 3, 'id': 5},
-        'image': 'https://hb.bizmrg.com/capsula_bucket/avatar/10.jpg'
-    })
+        data = book_search_serializer(page)
+        return Response(data)
+    return JsonResponse({'detail': 'Something is wrong in search'}, status=404)
 
 
 class SearchResults(LazyObject):

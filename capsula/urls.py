@@ -9,5 +9,8 @@ urlpatterns = [
     path('search/', include('elastic_app.urls')),
     path('auth/', include('auth.urls')),
     path('map/',  include('map.urls')),
+    path('management/',  include('management.urls')),
+    path('auth/', include('auth.urls')),
+    path('map/',  include('map.urls')),
     path('management/',  include('management.urls'))
 ]

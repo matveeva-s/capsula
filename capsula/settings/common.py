@@ -39,13 +39,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'user.apps.UserConfig',
     'library.apps.LibraryConfig',
+    'map.apps.MapConfig',
+    'management.apps.ManagementConfig',
     'rest_framework',
     'corsheaders',
     'storages',
     'social_django',
+    'djcelery_email',
     'django_elasticsearch_dsl',
     'elastic_app',
-    'djcelery_email'
 ]
 
 ELASTICSEARCH_DSL = {

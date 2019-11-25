@@ -13,6 +13,7 @@ class BookDocument(Document):
     class Django:
         model = Book
         fields = [
+            'id',
             'title',
             'authors',
             'genre',
