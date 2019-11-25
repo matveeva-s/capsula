@@ -7,4 +7,5 @@ urlpatterns = [
     path('library/', include('library.urls')),
     path('auth/', include('auth.urls')),
     path('map/',  include('map.urls')),
+    path('management/',  include('management.urls'))
 ]

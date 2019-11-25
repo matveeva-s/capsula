@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'user.apps.UserConfig',
     'library.apps.LibraryConfig',
     'map.apps.MapConfig',
+    'management.apps.ManagementConfig',
     'rest_framework',
     'corsheaders',
     'storages',
