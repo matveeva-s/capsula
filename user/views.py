@@ -13,6 +13,10 @@ from user.forms import UserForm
 from user.models import User
 from user.serializers import UserSerializer
 
+
+from django.contrib.auth.models import User as DjangoUser
+
+
 #todo шифровать пароль при регистрации и входе
 # https://habr.com/ru/post/120380/ статья по безопасной передаче логина-пароля с фронта на бэк
 @permission_classes([IsAuthenticated])
@@ -48,7 +52,6 @@ class MeDetailView(generics.RetrieveAPIView):
             data = request.data
         user = get_user_from_request(request)
         form = UserForm(data)
-        # print(request.data)
         if form.is_valid():
             user.first_name = data.get('first_name')
             user.last_name = data.get('last_name')

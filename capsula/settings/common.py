@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'social_django',
     'django_elasticsearch_dsl',
     'elastic_app',
+    'djcelery_email'
 ]
 
 ELASTICSEARCH_DSL = {

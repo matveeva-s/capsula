@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -8,12 +10,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.utils import json
 
+from map.models import GeoPoint
 from user.models import User
 from library.models import Book, BookItem, Wishlist
 from library.serializers import BookSerializerList, BookItemSerializerDetail, BookSerializerDetail, \
     BookItemSerializerList
 from library.forms import BookItemForm
-from capsula.utils import upload_file, get_user_from_request, delete_file, complete_headers, get_books
+from capsula.utils import upload_file, get_user_from_request, delete_file, complete_headers, get_books, haversine
 from capsula.settings.common import MEDIA_URL
 
 
@@ -71,11 +74,38 @@ class BookDetailView(generics.RetrieveAPIView):
         serializer = self.get_serializer(book)
         serializer_items = BookItemSerializerList(book_items, many=True)
         book_items_list = serializer_items.data
+        if request.GET.get('longitude'):
+            longitude = float(request.GET.get('longitude')) #todo  проверка
+        else:
+            longitude = None
+        if request.GET.get('latitude'):
+            latitude = float(request.GET.get('latitude'))
+        else:
+            latitude = None
+        if latitude is not None and longitude is not None:
+            geo = True
+        else:
+            geo = False
         for book_item in book_items_list:
-            if book_item['owner']['location'] == user.location:
-                book_item['near'] = True
+            geo_points = GeoPoint.objects.filter(user=book_item['owner']['id'])
+            if len(geo_points):
+                points = []
+                for p in geo_points:
+                    if geo:
+                        distance = haversine(longitude, latitude, p.longitude, p.latitude)
+                    else:
+                        distance = None
+                    points.append({'distance': distance, 'longitude': p.longitude, 'latitude': p.latitude})
+                if geo:
+                    points.sort(key=lambda x: x['distance'])
+                    book_item['point'] = points[0]
+                else:
+                    book_item['point'] = points
+                book_item['geolocationNotNull'] = True
             else:
-                book_item['near'] = False
+                book_item['geolocationNotNull'] = False
+                book_item['point'] = {}
+
         if len(Wishlist.objects.filter(book=book, user=user)) == 0:
             wishlist = {'added': False, 'id': None}
         else:

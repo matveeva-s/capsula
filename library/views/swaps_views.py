@@ -6,7 +6,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.utils import json
 
-from library.tasks import add_swap
+from library.tasks import add_swap, confirm_swap, reject_swap
 from library.models import Swap, BookItem
 from library.serializers import SwapSerializerList, SwapSerializerDetail
 from capsula.utils import get_user_from_request, complete_headers
@@ -72,9 +72,9 @@ class RequestsListView(generics.ListCreateAPIView):
             Swap.objects.create(book=bookitem, reader=user, status=Swap.CONSIDERED)
             bookitem.status = BookItem.READING
             bookitem.save()
-
-            #task = add_swap.delay("HI")
-            #print(task.get())
+            if bookitem.owner.email and bookitem.owner.email != '' and bookitem.owner.email.find('@false.ru') == -1:
+                task = add_swap.delay(bookitem.owner.email)
+                task.get()
 
             return JsonResponse({})
         elif bookitem.status == BookItem.NOT_AVAILABLE:
@@ -121,12 +121,18 @@ class SwapDetailView(generics.ListCreateAPIView):
                 swap.save()
                 swap.book.status = BookItem.AVAILABLE
                 swap.book.save()
+                if swap.reader.email and swap.reader.email != '' and swap.reader.email.find('@false.ru') == -1:
+                    task = reject_swap.delay(swap.reader.email)
+                    task.get()
             elif data['status'] == Swap.ACCEPTED:
                 swap.book.status = BookItem.READING
                 swap.book.save()
                 swap.status = data['status']
                 swap.updated_at = timezone.localtime()
                 swap.save()
+                if swap.reader.email and swap.reader.email != '' and swap.reader.email.find('@false.ru') == -1:
+                    task = confirm_swap.delay(swap.reader.email)
+                    task.get()
             return JsonResponse({})
         elif swap.reader == user and swap.status == Swap.CONSIDERED and data['status'] == Swap.CANCELED:
             swap.status = data['status']

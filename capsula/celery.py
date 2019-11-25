@@ -1,6 +1,6 @@
 import os
 from celery import Celery
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'capsula.settings.development')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'capsula.settings.production')
 app = Celery('capsula')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
