@@ -179,18 +179,24 @@ class BookItemsListView(generics.ListCreateAPIView):
             book = Book.objects.create(title=title, authors=authors, genre=genre)
         book_item = BookItem.objects.create(book=book, owner=user)
         if data.get('image'):
+            path = 'books/{}/{}.jpg'.format(user.id, book_item.id)
             if data.get('image').find('data:image') != -1:
                 image = data['image']
-                path = 'books/{}/{}.jpg'.format(user.id, book_item.id)
                 upload_file(path, image)
                 book_item.image = MEDIA_URL + path
+                if not book.image:
+                    book.image = MEDIA_URL + path
+                    book.save()
                 book_item.save()
             else:
                 book_item.image = data['image']
+                if not book.image:
+                    book.image = MEDIA_URL + path
+                    book.save()
                 book_item.save()
-            if data.get('isbn'):
-                book_item.isbn = data['isbn']
-                book_item.save()
+        if data.get('isbn'):
+            book_item.isbn = data['isbn']
+            book_item.save()
         serializer = self.get_serializer(book_item)
         return Response(serializer.data)
 

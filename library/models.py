@@ -66,6 +66,7 @@ class Book(models.Model):
     )
     genre = models.IntegerField(verbose_name='Жанр', choices=ABSTRACT_BOOK_GENRES)
     description = models.TextField(verbose_name='Описание', blank=True, null=True)
+    image = models.CharField('URL картинки', max_length=150, unique=True, blank=False, null=True)
 
     class Meta:
         verbose_name = 'Абстрактная книга'

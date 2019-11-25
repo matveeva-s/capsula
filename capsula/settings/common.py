@@ -43,7 +43,15 @@ INSTALLED_APPS = [
     'corsheaders',
     'storages',
     'social_django',
+    'django_elasticsearch_dsl',
+    'elastic_app',
 ]
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'localhost:9200'
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',

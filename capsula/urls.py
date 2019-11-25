@@ -5,5 +5,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/',  include('user.urls')),
     path('library/', include('library.urls')),
-    path('auth/', include('auth.urls'))
+    path('auth/', include('auth.urls')),
+    path('search/', include('elastic_app.urls')),
 ]
