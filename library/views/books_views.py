@@ -1,14 +1,11 @@
-from operator import attrgetter
-
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-import django_filters.rest_framework
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.utils import json
+from django.http import JsonResponse
 
 from map.models import GeoPoint
 from user.models import User
@@ -18,44 +15,37 @@ from library.serializers import BookSerializerList, BookItemSerializerDetail, Bo
 from library.forms import BookItemForm
 from capsula.utils import upload_file, get_user_from_request, delete_file, complete_headers, get_books, haversine
 from capsula.settings.common import MEDIA_URL
+from elastic_app.viewsets import book_search
+from elastic_app.serializers import book_search_serializer
 
 
 class BookListView(generics.RetrieveAPIView):
     serializer_class = BookSerializerList
     queryset = Book.objects.all()
-    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = ['title', 'authors', 'genre']
 
     @complete_headers
     def get(self, request, *args, **kwargs):
-        title = self.request.query_params.get('title', None)
-        if title is not None:
-            books = Book.objects.all().filter(title__contains=title).order_by('title')
-        else:
-            books = Book.objects.all().order_by('title')
-        authors = self.request.query_params.get('authors', None)
-        if authors is not None:
-            books = books.filter(authors__contains=authors).order_by('title')
-        genre = self.request.query_params.get('genre', None)
-        if genre is not None:
-            books = books.filter(genre=genre).order_by('title')
-        pages = request.GET.get('pages')
-        data = []
-        if pages:
-            pages = pages.split(',')
-            for page in pages:
-                current_page = Paginator(books, 30)
-                try:
-                    context = current_page.page(page)
-                except PageNotAnInteger:
-                    context = []
-                except EmptyPage:
-                    context = []
-                data = data + get_books(context)
-            return Response(data)
-        else:
-            data = get_books(books)
-            return Response(data)
+        q = request.GET.get('q')
+        genre = request.GET.get('genre')
+        page_number = request.GET.get('page')
+        search_results = Book.objects.all()
+        if q and genre:
+            search_results = book_search(q=q, genre=genre)
+        elif q:
+            search_results = book_search(q=q)
+        elif genre:
+            search_results = book_search(genre=genre)
+        paginate_by = 20
+        paginator = Paginator(search_results, paginate_by)
+        page_number = request.GET.get('page')
+        try:
+            page = paginator.page(page_number)
+        except PageNotAnInteger:
+            page = paginator.page(1)
+        except EmptyPage:
+            page = paginator.page(paginator.num_pages)
+        data = book_search_serializer(page)
+        return Response(data)
 
 
 @permission_classes([IsAuthenticated])

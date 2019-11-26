@@ -6,7 +6,7 @@ from user.serializers import DjangoUserSerializer, UserSerializerForBooksOwners,
 class BookSerializerList(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = ('title', 'authors', 'genre', 'id')
+        fields = ('title', 'authors', 'genre', 'id', 'image')
 
 
 class BookItemSerializerDetail(serializers.ModelSerializer):
