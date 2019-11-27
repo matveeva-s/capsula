@@ -36,6 +36,10 @@ class BookListView(generics.RetrieveAPIView):
         elif genre:
             search_results = book_search(genre=genre)
         paginate_by = 20
+        if search_results.count() % paginate_by == 0:
+            page_counter = search_results.count() // paginate_by
+        else:
+            page_counter = search_results.count() // paginate_by + 1
         paginator = Paginator(search_results, paginate_by)
         page_number = request.GET.get('page')
         try:
@@ -45,7 +49,7 @@ class BookListView(generics.RetrieveAPIView):
         except EmptyPage:
             page = paginator.page(paginator.num_pages)
         data = book_search_serializer(page)
-        return Response(data)
+        return JsonResponse({'books': data, 'pages': page_counter})
 
 
 @permission_classes([IsAuthenticated])
@@ -58,9 +62,7 @@ class BookDetailView(generics.RetrieveAPIView):
         user = get_user_from_request(request)
         book_id = self.kwargs['id']
         book = get_object_or_404(Book, pk=book_id)
-        book_items = BookItem.objects.filter(book=book)
-        image = book_items[0].image
-        book_items = book_items.exclude(owner=user)
+        book_items = BookItem.objects.filter(book=book).exclude(owner=user)
         serializer = self.get_serializer(book)
         serializer_items = BookItemSerializerList(book_items, many=True)
         book_items_list = serializer_items.data
@@ -100,7 +102,7 @@ class BookDetailView(generics.RetrieveAPIView):
             wishlist = {'added': False, 'id': None}
         else:
             wishlist = {'added': True, 'id': Wishlist.objects.get(book=book, user=user).id}
-        return Response({**serializer.data,**{'wishlist': wishlist}, **{'book_items': book_items_list, 'image': image}})
+        return Response({**serializer.data,**{'wishlist': wishlist}, **{'book_items': book_items_list, 'image': book.image}})
 
 
 @permission_classes([IsAuthenticated])
@@ -196,7 +198,8 @@ class BookItemsListView(generics.ListCreateAPIView):
         if existing_books:
             book = existing_books[0]
         else:
-            book = Book.objects.create(title=title, authors=authors, genre=genre)
+            book = Book(title=title, authors=authors, genre=genre)
+            book.save()
         book_item = BookItem.objects.create(book=book, owner=user)
         if data.get('image'):
             path = 'books/{}/{}.jpg'.format(user.id, book_item.id)

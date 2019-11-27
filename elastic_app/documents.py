@@ -8,7 +8,8 @@ class BookDocument(Document):
     class Index:
         name = 'books'
         settings = {'number_of_shards': 1,
-                    'number_of_replicas': 0}
+                    'number_of_replicas': 0,
+                    }
 
     class Django:
         model = Book
@@ -19,3 +20,5 @@ class BookDocument(Document):
             'genre',
             'image',
         ]
+        ignore_signals = False
+        auto_refresh = True

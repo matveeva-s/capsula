@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from user.models import User
+# from elastic_app.documents import BookDocument
 
 
 class Book(models.Model):
@@ -75,6 +76,17 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+    # def indexing(self):
+    #     obj = BookDocument(
+    #         id=self.id,
+    #         title=self.title,
+    #         authors=self.authors,
+    #         genre=self.genre,
+    #         image=self.image,
+    #     )
+    #     obj.save()
+        # return obj.to_dict(include_meta=True)
 
 
 def photo_upload_path(instance, *args, **kwargs):

@@ -10,14 +10,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='user',
-            name='books_given',
-            field=models.IntegerField(default=0, verbose_name='Книг отдано'),
-        ),
-        migrations.AddField(
-            model_name='user',
-            name='books_taken',
-            field=models.IntegerField(default=0, verbose_name='Книг взято'),
-        ),
+        # migrations.AddField(
+        #     model_name='user',
+        #     name='books_given',
+        #     field=models.IntegerField(default=0, verbose_name='Книг отдано'),
+        # ),
+        # migrations.AddField(
+        #     model_name='user',
+        #     name='books_taken',
+        #     field=models.IntegerField(default=0, verbose_name='Книг взято'),
+        # ),
     ]
