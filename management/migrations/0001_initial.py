@@ -9,8 +9,8 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('library', '0026_auto_20191123_1710'),
-        ('user', '0007_auto_20191123_1710'),
+        ('library', '0030_auto_20191125_1832'),
+        ('user', '0009_auto_20191125_1831'),
     ]
 
     operations = [

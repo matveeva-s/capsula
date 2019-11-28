@@ -1,14 +1,11 @@
-from operator import attrgetter
-
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-import django_filters.rest_framework
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.utils import json
+from django.http import JsonResponse
 
 from map.models import GeoPoint
 from user.models import User
@@ -18,44 +15,41 @@ from library.serializers import BookSerializerList, BookItemSerializerDetail, Bo
 from library.forms import BookItemForm
 from capsula.utils import upload_file, get_user_from_request, delete_file, complete_headers, get_books, haversine
 from capsula.settings.common import MEDIA_URL
+from elastic_app.viewsets import book_search
+from elastic_app.serializers import book_search_serializer
 
 
 class BookListView(generics.RetrieveAPIView):
     serializer_class = BookSerializerList
     queryset = Book.objects.all()
-    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
-    filterset_fields = ['title', 'authors', 'genre']
 
     @complete_headers
     def get(self, request, *args, **kwargs):
-        title = self.request.query_params.get('title', None)
-        if title is not None:
-            books = Book.objects.all().filter(title__contains=title).order_by('title')
+        q = request.GET.get('q')
+        genre = request.GET.get('genre')
+        page_number = request.GET.get('page')
+        search_results = Book.objects.all()
+        if q and genre:
+            search_results = book_search(q=q, genre=genre)
+        elif q:
+            search_results = book_search(q=q)
+        elif genre:
+            search_results = book_search(genre=genre)
+        paginate_by = 20
+        if search_results.count() % paginate_by == 0:
+            page_counter = search_results.count() // paginate_by
         else:
-            books = Book.objects.all().order_by('title')
-        authors = self.request.query_params.get('authors', None)
-        if authors is not None:
-            books = books.filter(authors__contains=authors).order_by('title')
-        genre = self.request.query_params.get('genre', None)
-        if genre is not None:
-            books = books.filter(genre=genre).order_by('title')
-        pages = request.GET.get('pages')
-        data = []
-        if pages:
-            pages = pages.split(',')
-            for page in pages:
-                current_page = Paginator(books, 30)
-                try:
-                    context = current_page.page(page)
-                except PageNotAnInteger:
-                    context = []
-                except EmptyPage:
-                    context = []
-                data = data + get_books(context)
-            return Response(data)
-        else:
-            data = get_books(books)
-            return Response(data)
+            page_counter = search_results.count() // paginate_by + 1
+        paginator = Paginator(search_results, paginate_by)
+        page_number = request.GET.get('page')
+        try:
+            page = paginator.page(page_number)
+        except PageNotAnInteger:
+            page = paginator.page(1)
+        except EmptyPage:
+            page = paginator.page(paginator.num_pages)
+        data = book_search_serializer(page)
+        return JsonResponse({'books': data, 'pages': page_counter})
 
 
 @permission_classes([IsAuthenticated])
@@ -68,9 +62,7 @@ class BookDetailView(generics.RetrieveAPIView):
         user = get_user_from_request(request)
         book_id = self.kwargs['id']
         book = get_object_or_404(Book, pk=book_id)
-        book_items = BookItem.objects.filter(book=book)
-        image = book_items[0].image
-        book_items = book_items.exclude(owner=user)
+        book_items = BookItem.objects.filter(book=book).exclude(owner=user)
         serializer = self.get_serializer(book)
         serializer_items = BookItemSerializerList(book_items, many=True)
         book_items_list = serializer_items.data
@@ -110,7 +102,7 @@ class BookDetailView(generics.RetrieveAPIView):
             wishlist = {'added': False, 'id': None}
         else:
             wishlist = {'added': True, 'id': Wishlist.objects.get(book=book, user=user).id}
-        return Response({**serializer.data,**{'wishlist': wishlist}, **{'book_items': book_items_list, 'image': image}})
+        return Response({**serializer.data,**{'wishlist': wishlist}, **{'book_items': book_items_list, 'image': book.image}})
 
 
 @permission_classes([IsAuthenticated])
@@ -206,21 +198,28 @@ class BookItemsListView(generics.ListCreateAPIView):
         if existing_books:
             book = existing_books[0]
         else:
-            book = Book.objects.create(title=title, authors=authors, genre=genre)
+            book = Book(title=title, authors=authors, genre=genre)
+            book.save()
         book_item = BookItem.objects.create(book=book, owner=user)
         if data.get('image'):
+            path = 'books/{}/{}.jpg'.format(user.id, book_item.id)
             if data.get('image').find('data:image') != -1:
                 image = data['image']
-                path = 'books/{}/{}.jpg'.format(user.id, book_item.id)
                 upload_file(path, image)
                 book_item.image = MEDIA_URL + path
+                if not book.image:
+                    book.image = MEDIA_URL + path
+                    book.save()
                 book_item.save()
             else:
                 book_item.image = data['image']
+                if not book.image:
+                    book.image = MEDIA_URL + path
+                    book.save()
                 book_item.save()
-            if data.get('isbn'):
-                book_item.isbn = data['isbn']
-                book_item.save()
+        if data.get('isbn'):
+            book_item.isbn = data['isbn']
+            book_item.save()
         serializer = self.get_serializer(book_item)
         return Response(serializer.data)
 

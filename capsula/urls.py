@@ -6,6 +6,10 @@ urlpatterns = [
     path('user/',  include('user.urls')),
     path('library/', include('library.urls')),
     path('auth/', include('auth.urls')),
+    path('auth/', include('auth.urls')),
+    path('map/',  include('map.urls')),
+    path('management/',  include('management.urls')),
+    path('auth/', include('auth.urls')),
     path('map/',  include('map.urls')),
     path('management/',  include('management.urls'))
 ]

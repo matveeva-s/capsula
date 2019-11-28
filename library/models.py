@@ -30,7 +30,6 @@ class Book(models.Model):
     SCIENCE_FICTION = 23
     STORY = 24
 
-
     ABSTRACT_BOOK_GENRES = (
         (CLASSIC_RUSSIAN, 'Классическая русская литература'),
         (CLASSIC_FOREIGN, 'Классическая зарубежная литература'),
@@ -66,6 +65,7 @@ class Book(models.Model):
     )
     genre = models.IntegerField(verbose_name='Жанр', choices=ABSTRACT_BOOK_GENRES)
     description = models.TextField(verbose_name='Описание', blank=True, null=True)
+    image = models.CharField('URL картинки', max_length=150, unique=True, blank=False, null=True)
 
     class Meta:
         verbose_name = 'Абстрактная книга'

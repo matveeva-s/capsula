@@ -2,6 +2,8 @@ from django.contrib.auth.models import User as DjangoUser
 from django.core.files.storage import FileSystemStorage
 from django.db import models
 
+from capsula import settings
+
 
 class OverwriteStorage(FileSystemStorage):
     """This class controls that new file upload with same name will overwrite old file"""

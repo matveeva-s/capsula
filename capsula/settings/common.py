@@ -45,8 +45,16 @@ INSTALLED_APPS = [
     'corsheaders',
     'storages',
     'social_django',
-    'djcelery_email'
+    'djcelery_email',
+    'django_elasticsearch_dsl',
+    'elastic_app',
 ]
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'localhost:9200'
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
@@ -137,5 +145,4 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
-
 MEDIA_URL = 'https://hb.bizmrg.com/capsula_bucket/'
