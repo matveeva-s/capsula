@@ -145,5 +145,4 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
-
 MEDIA_URL = 'https://hb.bizmrg.com/capsula_bucket/'
