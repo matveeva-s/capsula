@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from capsula.settings.common import MEDIA_URL
 from capsula.utils import upload_file, get_user_from_request, complete_headers
 from user.forms import UserForm
-from user.models import User
+from user.models import User, UserSubscription
 from user.serializers import UserSerializer
 
 
@@ -42,7 +42,8 @@ class MeDetailView(generics.RetrieveAPIView):
         user = get_user_from_request(request)
         serializer = self.get_serializer(user)
         data = serializer.data
-        return Response(data)
+        notification = get_object_or_404(UserSubscription, user=user).email_notification
+        return JsonResponse({**{'notification': notification}, **data})
 
     @complete_headers
     def put(self, request, *args, **kwargs):
@@ -55,19 +56,23 @@ class MeDetailView(generics.RetrieveAPIView):
         if form.is_valid():
             user.first_name = data.get('first_name')
             user.last_name = data.get('last_name')
-            user.location = data.get('location')
             user.contact = data.get('vk')
-            if request.data.get('image'):
+            if data.get('image'):
                 user_avatar = request.data.get('image')
                 upload_path = 'avatar/{}.jpg'.format(user.id)
                 upload_file(upload_path, user_avatar)
                 user.avatar = MEDIA_URL + upload_path
+            user_notification = get_object_or_404(UserSubscription, user=user)
+            if data.get('notification') is not None:
+                user_notification.email_notification = data.get('notification')
+                user_notification.save()
             user.save()
             serializer = self.get_serializer(user)
             data = serializer.data
-            return Response(data)
+            return JsonResponse({**{'notification': user_notification.email_notification}, **data})
         else:
             return JsonResponse({'detail': 'Ошибка создания, проверьте данные'}, status=400)
+
 
 @permission_classes([IsAuthenticated])
 class UserListView(generics.RetrieveAPIView):
