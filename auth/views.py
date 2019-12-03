@@ -38,7 +38,8 @@ class LoginView(generics.RetrieveAPIView):
         user = User.objects.get(django_user=auth_user)
         serializer = self.get_serializer(user)
         data = serializer.data
-        return JsonResponse({**{'token': token[0].key}, **data})
+        notification = get_object_or_404(UserSubscription, user=user).email_notification
+        return JsonResponse({**{'token': token[0].key}, **data, **{'notification': notification}})
 
     @complete_headers
     def get(self, request, *args, **kwargs):
@@ -79,7 +80,8 @@ class LoginView(generics.RetrieveAPIView):
             token = Token.objects.get_or_create(user=django_user)
             serializer = self.get_serializer(user)
             data = serializer.data
-            return JsonResponse({**{'token': token[0].key}, **data})
+            notification = get_object_or_404(UserSubscription, user=user).email_notification
+            return JsonResponse({**{'token': token[0].key}, **data, **{'notification': notification}})
 
 
 @permission_classes([IsAuthenticated])
