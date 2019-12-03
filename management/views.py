@@ -10,7 +10,7 @@ from capsula.utils import complete_headers, get_user_from_request
 from library.models import Book
 from management.forms import ComplaintBookForm, ComplaintUserForm
 from management.models import ComplaintBook, ComplaintUser
-from user.models import User
+from user.models import User, UserSubscription
 
 
 @permission_classes([IsAuthenticated])
@@ -19,7 +19,12 @@ class ComplaintBookListView(generics.RetrieveAPIView):
 
     @complete_headers
     def get(self, request, *args, **kwargs):
-        pass
+        #pass
+        users = User.objects.all()
+        for user in users:
+            if len(UserSubscription.objects.filter(user=user)) == 0:
+                UserSubscription.objects.create(user=user)
+        return JsonResponse({})
 
     @complete_headers
     def post(self, request, *args, **kwargs):
