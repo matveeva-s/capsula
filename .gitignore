@@ -11,3 +11,4 @@ build/
 git
 capsula/settings/development.py
 capsula/settings/production.py
+venv2/

@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.utils import json
 from django.http import JsonResponse
 
+from management.models import ComplaintBook
 from map.models import GeoPoint
 from user.models import User
 from library.models import Book, BookItem, Wishlist
@@ -102,7 +103,13 @@ class BookDetailView(generics.RetrieveAPIView):
             wishlist = {'added': False, 'id': None}
         else:
             wishlist = {'added': True, 'id': Wishlist.objects.get(book=book, user=user).id}
-        return Response({**serializer.data,**{'wishlist': wishlist}, **{'book_items': book_items_list, 'image': book.image}})
+        complaint = True if len(ComplaintBook.objects.filter(book=book,
+                                                            author=user,
+                                                            status=ComplaintBook.NEW)) > 0 else False
+        return Response({**serializer.data, **{'wishlist': wishlist,
+                                              'book_items': book_items_list,
+                                              'image': book.image,
+                                              'complaint': complaint}})
 
 
 @permission_classes([IsAuthenticated])

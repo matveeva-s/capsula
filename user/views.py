@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from capsula.settings.common import MEDIA_URL
 from capsula.utils import upload_file, get_user_from_request, complete_headers
+from management.models import ComplaintUser
 from user.forms import UserForm
 from user.models import User, UserSubscription
 from user.serializers import UserSerializer
@@ -26,10 +27,14 @@ class UserDetailView(generics.RetrieveAPIView):
 
     @complete_headers
     def get(self, request, *args, **kwargs):
+        author = get_user_from_request(request)
         user_id = self.kwargs['pk']
         user = get_object_or_404(User, id=user_id)
         serializer = self.get_serializer(user)
-        return Response(serializer.data)
+        complaint = True if len(ComplaintUser.objects.filter(user=user,
+                                                             author=author, status=ComplaintUser.NEW)) > 0 else False
+        data = serializer.data
+        return JsonResponse({**{'complaint': complaint}, **data})
 
 
 @permission_classes([IsAuthenticated])

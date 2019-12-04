@@ -19,12 +19,7 @@ class ComplaintBookListView(generics.RetrieveAPIView):
 
     @complete_headers
     def get(self, request, *args, **kwargs):
-        #pass
-        users = User.objects.all()
-        for user in users:
-            if len(UserSubscription.objects.filter(user=user)) == 0:
-                UserSubscription.objects.create(user=user)
-        return JsonResponse({})
+        pass
 
     @complete_headers
     def post(self, request, *args, **kwargs):
