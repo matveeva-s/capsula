@@ -10,6 +10,7 @@ urlpatterns = [
 
     url(r'^(swaps/)$', swaps_views.RequestsListView.as_view(), name='swaps_lists'),
     url(r'^(swaps)/(?P<id>\d+)/$', swaps_views.SwapDetailView.as_view(), name='swaps_detail'),
+    url(r'^(swaps_seen/)$', swaps_views.SeenView.as_view(), name='swaps_seen'),
 
     url(r'^(wishlist/)$', wishlist_views.WishlistView.as_view(), name='wishlist'),
     url(r'^(wishlist)/(?P<id>\d+)/$', wishlist_views.WishlistDetailView.as_view(), name='wishlist_detail'),

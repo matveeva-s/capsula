@@ -17,3 +17,4 @@ class BookItemForm(forms.ModelForm):
         model = BookItem
         fields = ('status', 'isbn')
 
+

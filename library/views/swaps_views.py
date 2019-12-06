@@ -12,7 +12,6 @@ from library.serializers import SwapSerializerList, SwapSerializerDetail
 from capsula.utils import get_user_from_request, complete_headers
 
 
-
 @permission_classes([IsAuthenticated])
 class RequestsListView(generics.ListCreateAPIView):
     serializer_class = SwapSerializerList
@@ -41,6 +40,8 @@ class RequestsListView(generics.ListCreateAPIView):
                               'id': swap.reader.id, 'vk': swap.reader.contact, 'email': email}
             data['date'] = swap.updated_at.strftime('%d.%m.%Y')
             data['image'] = swap.book.image
+            data['owner_seen'] = swap.owner_seen
+            data['reader_seen'] = swap.reader_seen
             data_owner.append(data)
         for swap in swaps_reader:
             data = {}
@@ -57,6 +58,8 @@ class RequestsListView(generics.ListCreateAPIView):
                              'id': swap.book.owner.id, 'vk': swap.book.owner.contact, 'email': email}
             data['date'] = swap.updated_at.strftime('%d.%m.%Y')
             data['image'] = swap.book.image
+            data['owner_seen'] = swap.owner_seen
+            data['reader_seen'] = swap.reader_seen
             data_reader.append(data)
         return JsonResponse({'owner': data_owner, 'reader': data_reader})
 
@@ -69,13 +72,12 @@ class RequestsListView(generics.ListCreateAPIView):
         bookitem = get_object_or_404(BookItem, pk=data["book_id"])
         if bookitem.status == BookItem.AVAILABLE:
             user = get_user_from_request(request)
-            Swap.objects.create(book=bookitem, reader=user, status=Swap.CONSIDERED)
+            Swap.objects.create(book=bookitem, reader=user, status=Swap.CONSIDERED, owner_seen=False)
             bookitem.status = BookItem.READING
             bookitem.save()
             if bookitem.owner.email and bookitem.owner.email != '' and bookitem.owner.email.find('@false.ru') == -1:
                 task = add_swap.delay(bookitem.owner.email)
                 task.get()
-
             return JsonResponse({})
         elif bookitem.status == BookItem.NOT_AVAILABLE:
             return JsonResponse({'detail': 'Книга недоступна'}, status=403)
@@ -118,6 +120,8 @@ class SwapDetailView(generics.ListCreateAPIView):
             if data['status'] == Swap.REJECTED:
                 swap.status = data['status']
                 swap.updated_at = timezone.localtime()
+                swap.reader_seen = False
+                swap.owner_seen = True
                 swap.save()
                 swap.book.status = BookItem.AVAILABLE
                 swap.book.save()
@@ -129,6 +133,8 @@ class SwapDetailView(generics.ListCreateAPIView):
                 swap.book.save()
                 swap.status = data['status']
                 swap.updated_at = timezone.localtime()
+                swap.reader_seen = False
+                swap.owner_seen = True
                 swap.save()
                 if swap.reader.email and swap.reader.email != '' and swap.reader.email.find('@false.ru') == -1:
                     task = confirm_swap.delay(swap.reader.email)
@@ -136,6 +142,8 @@ class SwapDetailView(generics.ListCreateAPIView):
             return JsonResponse({})
         elif swap.reader == user and swap.status == Swap.CONSIDERED and data['status'] == Swap.CANCELED:
             swap.status = data['status']
+            swap.reader_seen = True
+            swap.owner_seen = True
             swap.book.status = BookItem.AVAILABLE
             swap.book.save()
             swap.updated_at = timezone.localtime()
@@ -145,6 +153,8 @@ class SwapDetailView(generics.ListCreateAPIView):
             swap.status = data['status']
             swap.book.status = BookItem.AVAILABLE
             swap.book.save()
+            swap.reader_seen = True
+            swap.owner_seen = True
             swap.updated_at = timezone.localtime()
             swap.save()
             swap.book.owner.books_given = swap.book.owner.books_given + 1
@@ -154,6 +164,8 @@ class SwapDetailView(generics.ListCreateAPIView):
             return JsonResponse({})
         if swap.reader == user and swap.status == Swap.ACCEPTED and data['status'] == Swap.READING:
             swap.status = data['status']
+            swap.reader_seen = True
+            swap.owner_seen = True
             swap.updated_at = timezone.localtime()
             swap.save()
             return JsonResponse({})
@@ -169,4 +181,42 @@ class SwapDetailView(generics.ListCreateAPIView):
             return JsonResponse({})
         else:
             return JsonResponse({'detail': 'Невозможно удалить заявку'}, status=403)
+
+
+@permission_classes([IsAuthenticated])
+class SeenView(generics.ListCreateAPIView):
+    serializer_class = SwapSerializerDetail
+    queryset = Swap.objects.all()
+
+    @complete_headers
+    def get(self, request, *args, **kwargs):
+        user = get_user_from_request(request)
+        reader = len(Swap.objects.filter(reader=user, reader_seen=False))
+        owner = len(Swap.objects.filter(book__owner=user, owner_seen=False))
+        return JsonResponse({'reader': reader, 'owner': owner})
+
+    @complete_headers
+    def put(self, request, *args, **kwargs):
+        if request.content_type == 'text/plain;charset=UTF-8':
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.data
+        user = get_user_from_request(request)
+        if data.get('tab'):
+            if data['tab'] == 'reader':
+                swaps = Swap.objects.filter(reader=user, reader_seen=False)
+                for swap in swaps:
+                    swap.reader_seen = True
+                    swap.save()
+            elif data['tab'] == 'owner':
+                swaps = Swap.objects.filter(book__owner=user, owner_seen=False)
+                for swap in swaps:
+                    swap.owner_seen = True
+                    swap.save()
+            else:
+                return JsonResponse({'detail': 'Неправильный параметр'}, status=400)
+        else:
+            return JsonResponse({'detail': 'Не передан параметр'}, status=400)
+        return JsonResponse({})
+
 

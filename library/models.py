@@ -135,6 +135,9 @@ class Swap (models.Model):
     created_at = models.DateTimeField(verbose_name='Дата создания', default=timezone.localtime())
     updated_at = models.DateTimeField(verbose_name='Дата изменения', default=timezone.localtime())
 
+    owner_seen = models.BooleanField('Просмотрено владельцем', default=True)
+    reader_seen = models.BooleanField('Просмотрено читателем', default=True)
+
     class Meta:
         verbose_name = 'Обмен/заявка'
         verbose_name_plural = 'Обмены и заявки'

@@ -34,7 +34,7 @@ class User(models.Model):
     books_taken = models.IntegerField('Книг взято', default=0)
     books_given = models.IntegerField('Книг отдано', default=0)
 
-    #delete = models.BooleanField('Удален', default=False)
+    delete = models.BooleanField('Удален', default=False)
 
     class Meta:
         verbose_name = 'Пользователь'
